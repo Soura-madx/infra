@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
+import PrarambhLoader from "../component/PrarambhLoader";
 
 const BlogDetail = () => {
   const { id } = useParams();
@@ -48,7 +49,7 @@ const BlogDetail = () => {
   }
 };
 
-  if (loading) return <p className="p-6">Loading...</p>;
+  if (loading) return <PrarambhLoader/>;
   if (!blog) return <p className="p-6">Blog not found</p>;
 
   return (

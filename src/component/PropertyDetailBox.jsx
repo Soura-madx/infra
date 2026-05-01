@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Home, Sun, TreePine, CreditCard, Send } from "lucide-react";
 import axios from "axios";
 import ThankYouModal from "./Thanks";
+import PrarambhLoader from "./PrarambhLoader";
 
 const PropertyPage = ({ property }) => {
   const [activeNav, setActiveNav] = useState("about");
@@ -88,7 +89,7 @@ const PropertyPage = ({ property }) => {
     }
   }, [activeNav]);
 
-  if (!property) return <p className="text-center mt-10">Loading...</p>;
+  if (!property) return <PrarambhLoader/>;
 
   // 🔥 Dynamic values mapping
   const price = property.price || 0;
@@ -96,7 +97,7 @@ const PropertyPage = ({ property }) => {
   const city = property.city || "N/A";
   const title =
     property.title ||
-    `${property.type || "Property"} for Sale in ${property.plotNo}, ${property.towerName} ${property.projectAddress || ""}`;
+    `${property.type || "Property"} for ${property.saleCategory} in ${property.towerName} ${property.plotNo}, ${property.projectAddress || ""}`;
 
   return (
     <div className="bg-[#e9ebf2] min-h-screen font-sans text-slate-900 pb-20">
@@ -154,7 +155,7 @@ const PropertyPage = ({ property }) => {
 
               <div className="px-4 py-2">
                 <p className="text-xs text-slate-400">Plot Area</p>
-                <p className="font-bold text-lg">{area} sq.ft</p>
+                <p className="font-bold text-lg">{area} sqft </p>
               </div>
 
               <div className="px-4 py-2">

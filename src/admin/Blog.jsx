@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import PrarambhLoader from "../component/PrarambhLoader";
 
 const API_URL = "https://workiees.com/api/blogs";
 
@@ -96,7 +97,7 @@ const BlogList = () => {
       </div>
 
       {/* Loader */}
-      {loading && <p>Loading blogs...</p>}
+      {loading && <PrarambhLoader/>}
 
       {/* Blog Cards */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">

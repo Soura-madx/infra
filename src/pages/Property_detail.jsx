@@ -1,110 +1,111 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import axios from "axios";
-
 import PropertyImageGallery from "../component/property-images";
 import PropertyPage from "../component/PropertyDetailBox";
 import SimilarPropertiesSection from "../component/SimilarProperty";
 import Navbar from "../component/Navbar";
 import Footer from "../component/footer";
+import PrarambhLoader from "../component/PrarambhLoader";
 
 const Property_detail = () => {
   const { id } = useParams();
   const location = useLocation();
 
-  const [property, setProperty] = useState(location.state || null);
-  const [loading, setLoading] = useState(!location.state);
+  const [property, setProperty] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [similarProperties, setSimilarProperties] = useState([]);
-useEffect(() => {
-  if (!property?.project_id) return; // ✅ important guard
 
-  const fetchSimilarProperties = async () => {
-    try {
-      console.log("Fetching similar for project:", property.project_id);
+  // ✅ ALWAYS FETCH PROPERTY BY ID (fixes refresh issue)
+  useEffect(() => {
+    const fetchProperty = async () => {
+      try {
+        setLoading(true);
 
-      const res = await axios.get(
-        `https://workiees.com/api/units?project_id=${property.project_id}`
-      );
+        // 1. fetch unit
+        const unitRes = await axios.get(`https://workiees.com/api/units/${id}`);
+        const unit = unitRes.data.data;
 
-      console.log("API response:", res.data);
+        // 2. fetch project
+        const projectRes = await axios.get(
+          `https://workiees.com/api/projects/${unit.project_id}`,
+        );
+        const project = projectRes.data.data;
 
-      const units = res.data?.data || [];
+        // 3. normalize amenities
+        const amenities = (() => {
+          if (Array.isArray(project.amenities)) return project.amenities;
+          if (typeof project.amenities === "string") {
+            return project.amenities.split(",").map((a) => a.trim());
+          }
+          return [];
+        })();
 
-      if (!units.length) {
-        console.warn("No similar units found");
-      }
-
-      const mapped = units
-        .filter((u) => u.id !== property.id)
-        .slice(0, 5)
-        .map((unit) => ({
+        // 4. set property
+        setProperty({
           id: unit.id,
           project_id: unit.project_id,
 
-          projectName: property.projectName,
-          location: unit.location || "",
-
-          unitNumber: unit.unit_number || unit.plot_number || "N/A",
+          projectName: project.project_name || project.name || "N/A",
+          location: unit.Location || "",
+          saleCategory: unit.sale_category || "",
           towerName: unit.tower_name,
-
-          ratePerSqft: Number(unit.rate_per_sqft) || 0,
-          areaSqft: Number(unit.area_sqft) || 0,
-
+          price: Number(unit.rate_per_sqft) || 0,
+          plotNo: unit.plot_number || unit.unit_number || "N/A",
+          area: Number(unit.area_sqft) || 0,
           totalPrice:
-            (Number(unit.area_sqft) || 0) *
-            (Number(unit.rate_per_sqft) || 0),
+            (Number(unit.area_sqft) || 0) * (Number(unit.rate_per_sqft) || 0),
+
+          facing: unit.facing || "",
+          dimension: unit.plot_dimensions || "",
+
+          description: project.description || "",
+
+          amenities,
+
+          projectAddress: project.full_address || project.project_address || "",
+          city: project.city || "",
 
           photo: unit.unit_images?.length
-            ? unit.unit_images.map(
-                (img) => `https://workiees.com/${img}`
-              )
+            ? unit.unit_images.map((img) => `https://workiees.com/${img}`)
             : ["https://via.placeholder.com/300"],
-        }));
+        });
+      } catch (err) {
+        console.error("Error fetching property:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      console.log("Mapped similar:", mapped);
+    fetchProperty();
+  }, [id]);
 
-      setSimilarProperties(mapped);
-    } catch (err) {
-      console.error("Error fetching similar properties:", err);
-    }
-  };
-
-  fetchSimilarProperties();
-}, [property?.project_id]); // ✅ better dependency
-
-  // ✅ fallback if user opens directly
+  // ✅ FETCH SIMILAR PROPERTIES
   useEffect(() => {
-    if (!property) {
-      const fetchProperty = async () => {
-        try {
-          // 1. get unit
-          const unitRes = await axios.get(
-            `https://workiees.com/api/units/${id}`,
-          );
-          const unit = unitRes.data.data;
+    if (!property?.project_id) return;
 
-          // 2. get project
-          const projectRes = await axios.get(
-            `https://workiees.com/api/projects/${unit.project_id}`,
-          );
-          const project = projectRes.data.data;
+    const fetchSimilarProperties = async () => {
+      try {
+        const res = await axios.get(
+          `https://workiees.com/api/units?project_id=${property.project_id}`,
+        );
 
-          // 3. map SAME as listing page
-          const mapped = {
+        const units = res.data?.data || [];
+
+        const mapped = units
+          .filter((u) => u.id !== property.id)
+          .slice(0, 5)
+          .map((unit) => ({
             id: unit.id,
             project_id: unit.project_id,
 
-            projectName: project.project_name || project.name || "N/A",
-            projectAddress:
-              project.full_address || project.project_address || "",
-            city: project.city || "",
+            projectName: unit.project_name || property.projectName || "N/A",
 
-            location: unit.location || "",
+            location: unit.location || property.location || "",
 
-            unitNumber: unit.unit_number || unit.plot_number || "N/A", // ✅ fixed
+            unitNumber: unit.unit_number || unit.plot_number || "N/A",
 
-            towerName: unit.tower_name,
-            dimension: unit.plot_dimensions,
+            towerName: unit.tower_name || "",
 
             ratePerSqft: Number(unit.rate_per_sqft) || 0,
             areaSqft: Number(unit.area_sqft) || 0,
@@ -112,33 +113,34 @@ useEffect(() => {
             totalPrice:
               (Number(unit.area_sqft) || 0) * (Number(unit.rate_per_sqft) || 0),
 
-            facing: unit.facing,
-
             photo: unit.unit_images?.length
               ? unit.unit_images.map((img) => `https://workiees.com/${img}`)
               : ["https://via.placeholder.com/300"],
-          };
-          setProperty(mapped);
-        } catch (err) {
-          console.error(err);
-        } finally {
-          setLoading(false);
-        }
-      };
+          }));
 
-      fetchProperty();
-    }
-  }, [id, property]);
+        setSimilarProperties(mapped);
+      } catch (err) {
+        console.error("Error fetching similar properties:", err);
+      }
+    };
 
-  if (loading) return <p className="text-center mt-20">Loading...</p>;
-  if (!property) return <p className="text-center mt-20">Not Found</p>;
+    fetchSimilarProperties();
+  }, [property?.project_id, property?.id]);
 
-  const galleryImages = [
-    {
-      src: property.photo,
-      label: property.projectName,
-    },
-  ];
+  if (loading) {
+    return <PrarambhLoader/>
+  }
+
+  if (!property) {
+    return <p className="text-center mt-20">Not Found</p>;
+  }
+
+  const galleryImages = property.photo.map((img, index) => ({
+    src: img,
+    type: img.includes(".mp4") ? "video" : "image",
+    alt: `${property.projectName} ${index + 1}`,
+    label: property.projectName,
+  }));
 
   return (
     <div>
@@ -155,10 +157,14 @@ useEffect(() => {
         {/* ✅ MAIN DETAIL BOX */}
         <PropertyPage property={property} />
 
+        {/* ✅ SIMILAR PROPERTIES */}
         {similarProperties.length > 0 && (
-  <SimilarPropertiesSection properties={similarProperties} />
-)}
-       
+          <SimilarPropertiesSection
+            properties={similarProperties}
+            images={galleryImages}
+            title={property.projectName}
+          />
+        )}
       </main>
 
       <Footer />

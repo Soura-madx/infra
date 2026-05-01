@@ -58,6 +58,8 @@ import BlogM from "./admin/Blog";
 import AddBlog from "./admin/AddBlog";
 import BlogDetail from "./admin/BlogDetail";
 import EditBlog from "./admin/EditBlog"
+import TermsConditionsPage from "./component/TermCondition";
+import PrivacyPolicy from "./component/PrivacyPolicy";
 
 
 function App() {
@@ -85,8 +87,9 @@ function App() {
             <Route path="/signup" element={<Signup />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/team" element={<TeamTree />} />
-          
-            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/termcondition" element={<TermsConditionsPage/>} />
+            <Route path="/forgot-password" element={<ForgotPassword/>} /> 
+            <Route path="/privacypolicy" element={<PrivacyPolicy/>} /> 
 
 
             {/* --- PROTECTED ADVISOR ROUTES --- */}

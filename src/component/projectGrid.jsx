@@ -9,6 +9,7 @@ import {
   Building2,
   Eye,
 } from "lucide-react";
+import PrarambhLoader from "./PrarambhLoader";
 
 const ProjectList = () => {
   const navigate = useNavigate();
@@ -253,7 +254,7 @@ const ProjectList = () => {
 
       {loading ? (
         <div className="py-20 text-center bg-white rounded-[8px] border border-gray-100">
-          <p className="text-gray-400 font-bold text-sm">Loading projects...</p>
+          <PrarambhLoader/>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">

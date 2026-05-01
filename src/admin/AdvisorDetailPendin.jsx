@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
+import PrarambhLoader from "../component/PrarambhLoader";
 
 const AdvisorDetails = () => {
   const { id } = useParams();
@@ -44,7 +45,7 @@ const AdvisorDetails = () => {
     }
   };
 
-  if (loading) return <p className="p-6">Loading...</p>;
+  if (loading) return <PrarambhLoader/>;
   if (!advisor) return <p className="p-6">Advisor not found</p>;
 
   return (

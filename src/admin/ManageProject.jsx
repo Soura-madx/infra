@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Trash2, Plus, Upload, X } from "lucide-react";
+import PrarambhLoader from "../component/PrarambhLoader";
 
 const EditProject = () => {
   const navigate = useNavigate();
@@ -330,9 +331,7 @@ const EditProject = () => {
     return (
       <div className="max-w-6xl mx-auto p-6">
         <div className="bg-white border border-gray-100 rounded-2xl p-10 text-center">
-          <h2 className="text-xl font-bold text-gray-800">
-            Loading project...
-          </h2>
+          <PrarambhLoader/>
         </div>
       </div>
     );

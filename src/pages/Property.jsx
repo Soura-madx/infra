@@ -61,6 +61,7 @@ const PropertyListingPage = () => {
   const [units, setUnits] = useState([]);
   const [projects, setProjects] = useState([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+
   const navigate = useNavigate();
   const { projectId } = useParams();
 
@@ -89,33 +90,72 @@ const PropertyListingPage = () => {
   });
 
   /* -------- FETCH -------- */
-useEffect(() => {
-  const fetchData = async () => {
-    const unitsRes = await axios.get(
-      `https://workiees.com/api/units`
-    );
+  const [loading, setLoading] = useState(true); // Set initial to true
 
-    const unitsData = unitsRes.data.data || [];
+  /* -------- FETCH -------- */
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true); // Start loading
+        const unitsRes = await axios.get(`https://workiees.com/api/units`);
+        const unitsData = unitsRes.data.data || [];
 
-    const projectIds = [
-      ...new Set(unitsData.map((u) => u.project_id).filter(Boolean)),
-    ];
+        const projectIds = [
+          ...new Set(unitsData.map((u) => u.project_id).filter(Boolean)),
+        ];
+        const projectPromises = projectIds.map((id) =>
+          axios.get(`https://workiees.com/api/projects/${id}`),
+        );
 
-    const projectPromises = projectIds.map((id) =>
-      axios.get(`https://workiees.com/api/projects/${id}`)
-    );
+        const projectsRes = await Promise.all(projectPromises);
+        const projectsData = projectsRes.map((r) => r.data.data);
 
-    const projectsRes = await Promise.all(projectPromises);
-    const projectsData = projectsRes.map((r) => r.data.data);
+        setUnits(unitsData);
+        setProjects(projectsData);
+      } catch (error) {
+        console.error("Error fetching data", error);
+      } finally {
+        setLoading(false); // Stop loading
+      }
+    };
+    fetchData();
+  }, []);
 
-    setUnits(unitsData);
-    setProjects(projectsData);
-  };
+  // 🔹 Skeleton for City Banner Cards
+  const BannerSkeleton = () => (
+    <div className="flex gap-4 overflow-hidden mt-5">
+      {[1, 2, 3].map((i) => (
+        <div
+          key={i}
+          className="min-w-[210px] h-32 bg-slate-800 animate-pulse rounded-2xl"
+        />
+      ))}
+    </div>
+  );
 
-  fetchData();
-}, []);
+  // 🔹 Skeleton for Sidebar Filters
+  const FilterSkeleton = () => (
+    <div className="space-y-4 animate-pulse">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <div key={i} className="h-10 bg-gray-200 rounded w-full" />
+      ))}
+    </div>
+  );
 
-
+  // 🔹 Skeleton for Property Row
+  const PropertySkeleton = () => (
+    <div className="rounded-sm mt-3 bg-white border border-slate-100 shadow-sm overflow-hidden animate-pulse">
+      <div className="grid md:grid-cols-[0.4fr_0.6fr]">
+        <div className="h-[220px] bg-gray-200" />
+        <div className="p-5 space-y-4">
+          <div className="h-4 bg-gray-200 rounded w-3/4" />
+          <div className="h-3 bg-gray-100 rounded w-1/2" />
+          <div className="h-12 bg-gray-50 rounded w-full" />
+          <div className="h-8 bg-gray-200 rounded w-24 ml-auto" />
+        </div>
+      </div>
+    </div>
+  );
 
   const projectMap = useMemo(() => {
     const map = {};
@@ -321,14 +361,21 @@ useEffect(() => {
       <Navbar />
       <div className="space mt-20"></div>
       <main className="mx-auto max-w-7xl px-4 lg:px-8 py-10 lg:py-14 space-y-10">
-        <CityBanner
-          cities={cities}
-          selectedCity={filters.city}
-          onSelect={(city) => {
-            setFilters({ ...filters, city });
-            setCurrentPage(1);
-          }}
-        />
+        {loading ? (
+          <section className="rounded-3xl bg-slate-900 px-8 py-7">
+            <div className="h-6 bg-slate-800 rounded w-1/4 mb-4 animate-pulse" />
+            <BannerSkeleton />
+          </section>
+        ) : (
+          <CityBanner
+            cities={cities}
+            selectedCity={filters.city}
+            onSelect={(city) => {
+              setFilters({ ...filters, city });
+              setCurrentPage(1);
+            }}
+          />
+        )}
 
         <div className="flex items-center justify-between lg:hidden">
           <p className="text-xs text-slate-500">
@@ -461,7 +508,12 @@ useEffect(() => {
           {/* LIST */}
 
           <div className="space-y-4 ">
-            {paginated.map((p) => (
+
+                {loading ? (
+            // Show 3 skeletons while loading
+            [1, 2, 3].map((i) => <PropertySkeleton key={i} />)
+          ) : paginated.length > 0 ? (
+            paginated.map((p) => (
               <div className="rounded-sm mt-3 bg-white border border-slate-100 shadow-sm overflow-hidden  transition-all duration-500">
                 <div className="grid gap-0 md:grid-cols-[0.4fr_0.6fr]">
                   <div className="relative w-full h-[220px] overflow-hidden">
@@ -548,22 +600,28 @@ useEffect(() => {
 
                     {/* RERA & Footer */}
                     <div className="flex items-center justify-end pt-1">
-                      <button
-                        onClick={() =>
-                          navigate(`/property/${p.id}`, { state: p })
-                        }
+                      <Link
+                        to={`/property/${p.id}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="px-5 py-2 rounded-sm text-white text-[11px] font-black uppercase tracking-widest shadow-lg transition-all hover:brightness-110 active:scale-95"
-                        style={{ backgroundColor: primaryBlue }}
                       >
-                        Details
-                      </button>
+                        <button
+                          className="px-5 py-2 rounded-sm text-white text-[11px] font-black uppercase tracking-widest shadow-lg transition-all hover:brightness-110 active:scale-95"
+                          style={{ backgroundColor: primaryBlue }}
+                        >
+                          Details
+                        </button>
+                      </Link>
                     </div>
                   </div>
                 </div>
               </div>
-            ))}
+            ))
+          ) : (
+            <div className="text-center py-20 text-gray-500">No properties found.</div>
+          )}
+
+          
 
             <div className="flex items-center justify-center gap-3 mt-6">
               <button
@@ -591,7 +649,7 @@ useEffect(() => {
           </div>
         </div>
 
-                {/* MOBILE FILTER DRAWER */}
+        {/* MOBILE FILTER DRAWER */}
         {isFilterOpen && (
           <>
             {/* backdrop */}

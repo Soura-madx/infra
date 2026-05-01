@@ -9,6 +9,7 @@ import {
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../component/Navbar";
 import Footer from "../component/footer";
+import PrarambhLoader from "./PrarambhLoader";
 
 const BlogDetailPage = () => {
   const { id } = useParams();
@@ -56,7 +57,7 @@ const BlogDetailPage = () => {
     return (
       <div>
         <Navbar />
-        <p className="mt-24 text-center">Loading blog...</p>
+        <PrarambhLoader/>
       </div>
     );
   }
@@ -75,7 +76,7 @@ const BlogDetailPage = () => {
       <Navbar />
 
       {/* HERO SECTION */}
-      <div className="relative h-[420px] w-full overflow-hidden">
+      <div className="relative h-[420px] max-w-7xl mx-auto md:mt-30 overflow-hidden">
         <img
           src={`https://workiees.com/${blog.image}`}
           alt={blog.title}
@@ -116,7 +117,7 @@ const BlogDetailPage = () => {
       </div>
 
       {/* CONTENT */}
-      <div className="max-w-3xl mx-auto px-4 py-16">
+      <div className="max-w-7xl mx-auto px-4 py-16">
         <div className="prose prose-lg max-w-none text-slate-700 leading-relaxed">
           {blog.description}
         </div>

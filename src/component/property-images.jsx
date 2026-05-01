@@ -36,41 +36,41 @@ export default function PropertyImageGallery({ images, title = "Property" }) {
   };
 
   const renderVideo = (url) => {
-  if (!url) return null;
+    if (!url) return null;
 
-  // YouTube (watch?v=)
-  if (url.includes("youtube.com/watch")) {
-    const videoId = url.split("v=")[1]?.split("&")[0];
+    // YouTube (watch?v=)
+    if (url.includes("youtube.com/watch")) {
+      const videoId = url.split("v=")[1]?.split("&")[0];
+      return (
+        <iframe
+          src={`https://www.youtube.com/embed/${videoId}`}
+          className="h-full w-full"
+          allowFullScreen
+          title="Project Video"
+        />
+      );
+    }
+
+    // YouTube short (youtu.be)
+    if (url.includes("youtu.be")) {
+      const videoId = url.split("youtu.be/")[1];
+      return (
+        <iframe
+          src={`https://www.youtube.com/embed/${videoId}`}
+          className="h-full w-full"
+          allowFullScreen
+          title="Project Video"
+        />
+      );
+    }
+
+    // Direct video file
     return (
-      <iframe
-        src={`https://www.youtube.com/embed/${videoId}`}
-        className="h-full w-full"
-        allowFullScreen
-        title="Project Video"
-      />
+      <video controls className="h-full w-full object-cover">
+        <source src={`https://workiees.com/${url}`} type="video/mp4" />
+      </video>
     );
-  }
-
-  // YouTube short (youtu.be)
-  if (url.includes("youtu.be")) {
-    const videoId = url.split("youtu.be/")[1];
-    return (
-      <iframe
-        src={`https://www.youtube.com/embed/${videoId}`}
-        className="h-full w-full"
-        allowFullScreen
-        title="Project Video"
-      />
-    );
-  }
-
-  // Direct video file
-  return (
-    <video controls className="h-full w-full object-cover">
-      <source src={`https://workiees.com/${url}`} type="video/mp4" />
-    </video>
-  );
-};
+  };
   return (
     <section className="w-full rounded-md bg-gray-100 px-3 sm:px-4 py-4 sm:py-5 shadow-[0_1px_3px_rgba(15,23,42,0.45)]">
       {/* Main image */}
@@ -137,8 +137,6 @@ export default function PropertyImageGallery({ images, title = "Property" }) {
                 </span>
               )}
             </div>
-
-           
           </div>
         </div>
       </div>
@@ -177,7 +175,7 @@ export default function PropertyImageGallery({ images, title = "Property" }) {
                     <img
                       src={img.src}
                       alt={img.alt}
-                      className="h-full w-full object-cover"
+                      className="w-full h-40 object-cover"
                     />
                   )}
                 </div>

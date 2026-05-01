@@ -218,11 +218,11 @@ const Footer = () => {
             © {new Date().getFullYear()} Prarambh Infra. All rights reserved.
           </p>
           <div className="flex flex-wrap items-center gap-4">
-            <a href="#" className="hover:text-white">
+            <a href="/privacypolicy" className="hover:text-white">
               Privacy Policy
             </a>
-            <a href="#" className="hover:text-white">
-              Terms of Service
+            <a href="/termcondition" className="hover:text-white">
+              Term and Condition
             </a>
             <span className="inline-flex items-center gap-1 text-[#f58025]">
               <span className="h-1 w-1 rounded-full bg-[#f58025]" />
