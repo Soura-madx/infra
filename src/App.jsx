@@ -32,7 +32,7 @@ import Calculator from "./Advisors/Advisors-Pages/Calculator";
 import Attendance from "./Advisors/Advisors-Pages/Attendance";
 import Leaderboard from "./Advisors/Advisors-Pages/Leaderboard";
 import Promotion from "./Advisors/Advisors-Pages/Promotion";
-import Team from "./Advisors/Advisors-Pages/Team";
+
 import Sell from "./Advisors/Advisors-Pages/Sell";
 import Project from "./Advisors/Advisors-Pages/Project";
 import Profile from "./Advisors/Advisors-Pages/Profile";
@@ -49,17 +49,19 @@ import ProjectDetailM from "./admin/ProjectDetailM";
 import EditProject from "./admin/ManageProject";
 import UnitInventoryAdmin from "./admin/UnitInventoryAdmin";
 import EditUnit from "./admin/EditUnit";
-import TeamTree from "./pages/team";
+
 import ForgotPassword from "./component/auth/ForgotPassword";
-import PendingAdvisors from "./admin/PendingVerifycation";
-import AllAdvisors from "./admin/AllPendingAdvisor";
-import AdvisorDetails from "./admin/AdvisorDetailPendin";
 import BlogM from "./admin/Blog";
 import AddBlog from "./admin/AddBlog";
 import BlogDetail from "./admin/BlogDetail";
 import EditBlog from "./admin/EditBlog"
 import TermsConditionsPage from "./component/TermCondition";
 import PrivacyPolicy from "./component/PrivacyPolicy";
+import PendingAdvisor from "./admin/PendingAdvisor";
+import Recruitment from "./admin/Recruitment";
+import RegisterAdvisor from "./component/auth/Signup";
+import AdvisorRegistration from "./admin/RegisterAdvisor";
+import AdvisorTreeView from "./admin/Team";
 
 
 function App() {
@@ -86,7 +88,7 @@ function App() {
             <Route path="/contact-us" element={<ContactPrarambh />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/team" element={<TeamTree />} />
+            
             <Route path="/termcondition" element={<TermsConditionsPage/>} />
             <Route path="/forgot-password" element={<ForgotPassword/>} /> 
             <Route path="/privacypolicy" element={<PrivacyPolicy/>} /> 
@@ -114,7 +116,7 @@ function App() {
               <Route path="profile" element={<Profile />} />
               <Route path="project" element={<Project />} />
               <Route path="sell" element={<Sell />} />
-              <Route path="team" element={<Team />} />
+              
               <Route path="notifications" element={<Notification />} />
               <Route path="profile/edit" element={<EditProfile />} />
               <Route path="project/:id/inventory" element={<UnitInventory />} />
@@ -145,12 +147,11 @@ function App() {
               <Route path="projects/manage/:id" element={<EditProject />} />
               <Route path="projects/unit" element={<UnitInventoryAdmin />} />
               <Route path="projects/unit/edit" element={<EditUnit />} />
-              <Route
-                path="/admin/pending-advisors"
-                element={<PendingAdvisors />}
-              />
-              <Route path="/admin/all-advisors" element={<AllAdvisors />} />
-              <Route path="/admin/advisor/:id" element={<AdvisorDetails />} />
+              <Route path="pending_advisors" element={<PendingAdvisor />} />
+              <Route path="recruitment" element={<Recruitment />} />
+              <Route path="recruitment/create" element={<AdvisorRegistration />} />
+              <Route path="team" element={<AdvisorTreeView />} />
+             
             </Route>
 
             <Route path="*" element={<div>404 Not Found</div>} />

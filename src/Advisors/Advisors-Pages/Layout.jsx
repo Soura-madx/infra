@@ -97,9 +97,9 @@ const Layout = () => {
               />
               {/* Ensure /admin/advisors exists in App.js or remove this */}
               <SidebarNavLink
-                to={`${basePath}/advisors`}
+                to={`${basePath}/pending_advisors`}
                 icon={<Users size={16} />}
-                label="Advisor List"
+                label="ADVISOR APPROVAL"
               />
             </>
           ) : (
@@ -113,26 +113,23 @@ const Layout = () => {
           <SidebarNavLink
             to={`${basePath}/contests`}
             icon={<Award size={16} />}
-            label="Contests"
+            label="CONTEST"
           />
-          <SidebarNavLink
-            to="/admin/pending-advisors"
-            label="Pending Advisors"
-          />
+         
           <SidebarNavLink
             to={`${basePath}/installments`}
             icon={<CalendarCheck size={16} />}
-            label="Installments"
+            label="UPCOMING INSTALLMENTS"
           />
           <SidebarNavLink
             to={`${basePath}/blog`}
             icon={<CalendarCheck size={16} />}
-            label="Blog"
+            label="BLOG"
           />
           <SidebarNavLink
-            to={`${basePath}/calculator`}
+            to={`${basePath}/recruitment`}
             icon={<Calculator size={16} />}
-            label="Calculator"
+            label="RECRUITMENT MANAGEMENT"
           />
           <SidebarNavLink
             to={`${basePath}/leaderboard`}

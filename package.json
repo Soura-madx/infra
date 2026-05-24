@@ -10,14 +10,18 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@dagrejs/dagre": "^3.0.0",
     "@tailwindcss/vite": "^4.1.18",
     "axios": "^1.13.6",
+    "dagre": "^0.8.5",
     "framer-motion": "^12.35.1",
     "lucide-react": "^0.562.0",
     "react": "^19.2.0",
+    "react-datepicker": "^9.1.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.11.0",
     "react-slick": "^0.31.0",
+    "reactflow": "^11.11.4",
     "slick-carousel": "^1.8.1",
     "tailwindcss": "^4.1.18",
     "xlsx": "^0.18.5"

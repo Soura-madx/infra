@@ -1,7 +1,7 @@
 import React from "react";
 
 import MissionVisionSection from "../component/mission";
-import LeadershipSection from "../component/team";
+
 import Navbar from "../component/Navbar";
 import WhyChoosePrarambh from "../component/whychooseus";
 import Footer from '../component/footer'
