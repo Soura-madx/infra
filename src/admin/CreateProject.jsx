@@ -166,72 +166,71 @@ const CreateProject = () => {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!validateForm()) return;
+    if (!validateForm()) return;
 
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const payload = new FormData();
+      const payload = new FormData();
 
-    payload.append("project_name", formData.name);
-    payload.append("developer_name", formData.developerName);
-    payload.append("city", formData.city);
-    payload.append("full_address", formData.address);
-    payload.append("status", formData.status);
-    payload.append("project_type", formData.type);
-    payload.append("construction_status", formData.possession);
-    payload.append("market_value", formData.marketValue);
-    payload.append("total_plots", formData.totalPlot);
-    payload.append("build_area", formData.builtUpArea);
-    payload.append("rera_number", formData.reraNo);
-    payload.append("location", formData.mapLink);
-    payload.append("rate_per_sqft", formData.ratePerSqft);
-    payload.append("budget_range", formData.budgetRange);
-    payload.append("description", formData.description);
-    payload.append("rera_approved", formData.reraApproved ? "1" : "0");
+      payload.append("project_name", formData.name);
+      payload.append("developer_name", formData.developerName);
+      payload.append("city", formData.city);
+      payload.append("full_address", formData.address);
+      payload.append("status", formData.status);
+      payload.append("project_type", formData.type);
+      payload.append("construction_status", formData.possession);
+      payload.append("market_value", formData.marketValue);
+      payload.append("total_plots", formData.totalPlot);
+      payload.append("build_area", formData.builtUpArea);
+      payload.append("rera_number", formData.reraNo);
+      payload.append("location", formData.mapLink);
+      payload.append("rate_per_sqft", formData.ratePerSqft);
+      payload.append("budget_range", formData.budgetRange);
+      payload.append("description", formData.description);
+      
 
-    payload.append("amenities", formData.amenities.join(", "));
-    payload.append("specialties", formData.specialities.join(", "));
+      payload.append("amenities", formData.amenities.join(", "));
+      payload.append("specialties", formData.specialities.join(", "));
 
-    formData.galleryImages.forEach((file) => {
-      payload.append("images[]", file);
-    });
+      formData.galleryImages.forEach((file) => {
+        payload.append("images[]", file);
+      });
 
-    if (formData.videoFile) {
-      payload.append("video", formData.videoFile);
+      if (formData.videoFile) {
+        payload.append("video", formData.videoFile);
+      }
+
+      if (formData.brochureFile) {
+        payload.append("brochure", formData.brochureFile);
+      }
+
+      const response = await fetch("https://workiees.com/api/projects/add", {
+        method: "POST",
+        body: payload,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Failed to create project");
+      }
+
+      alert("Project created successfully");
+
+      setFormData(emptyProject);
+      setAmenityInput("");
+      setSpecialityInput("");
+      setErrors({});
+    } catch (error) {
+      console.error("Create project error:", error);
+      alert(error.message || "Something went wrong");
+    } finally {
+      setLoading(false);
     }
-
-    if (formData.brochureFile) {
-      payload.append("brochure", formData.brochureFile);
-    }
-
-   
-    const response = await fetch("https://workiees.com/api/projects/add", {
-      method: "POST",
-      body: payload,
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(result.message || "Failed to create project");
-    }
-
-    alert("Project created successfully");
-
-    setFormData(emptyProject);
-    setAmenityInput("");
-    setSpecialityInput("");
-    setErrors({});
-  } catch (error) {
-    console.error("Create project error:", error);
-    alert(error.message || "Something went wrong");
-  } finally {
-    setLoading(false);
-  }
-};  
+  };
 
   return (
     <div
@@ -282,14 +281,17 @@ const CreateProject = () => {
             </FormField>
 
             <FormField label="City" error={errors.city}>
-              <input
-                type="text"
+              <select
                 name="city"
                 value={formData.city}
                 onChange={handleChange}
-                placeholder="Enter city"
                 className="input-style"
-              />
+              >
+                
+                <option value="Indore">Indore</option>
+                <option value="Ujjain">Ujjain</option>
+                <option value="Dewas">Dewas</option>
+              </select>
             </FormField>
 
             <FormField label="Status" error={errors.status}>
@@ -299,7 +301,6 @@ const CreateProject = () => {
                 onChange={handleChange}
                 className="input-style"
               >
-                <option value="">Select status</option>
                 <option value="Ongoing">Ongoing</option>
                 <option value="Upcoming">Upcoming</option>
                 <option value="Completed">Completed</option>
@@ -313,22 +314,30 @@ const CreateProject = () => {
                 onChange={handleChange}
                 className="input-style"
               >
-                <option value="">Select type</option>
                 <option value="Residential">Residential</option>
                 <option value="Commercial">Commercial</option>
+                <option value="Industrial">Industrial</option>
+                <option value="Agriculture">Agriculture</option>
+                <option value="Residential + Commercial">
+                  Residential + Commercial
+                </option>
               </select>
             </FormField>
 
-            <FormField label="Possession" error={errors.possession}>
+            <FormField label="Property Type" error={errors.possession}>
               <select
                 name="possession"
                 value={formData.possession}
                 onChange={handleChange}
                 className="input-style"
               >
-                <option value="">Select possession</option>
-                <option value="Ready to Move">Ready to Move</option>
-                <option value="Under Construction">Under Construction</option>
+                <option value="Raw House">Raw House</option>
+                <option value="Flats">Flats</option>
+                <option value="Plots">Plots</option>
+                <option value="P+C">P+C</option>
+                <option value="Shop">Shop</option>
+                <option value="Office">Office</option>
+                <option value="Farming Land">Farming Land</option>
               </select>
             </FormField>
           </div>
@@ -408,7 +417,7 @@ const CreateProject = () => {
                 name="totalPlot"
                 value={formData.totalPlot}
                 onChange={handleChange}
-                placeholder="Example: 12 Acres"
+                placeholder="Example: 12 Units"
                 className="input-style"
               />
             </FormField>

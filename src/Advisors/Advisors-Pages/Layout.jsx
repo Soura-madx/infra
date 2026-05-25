@@ -164,7 +164,7 @@ const Layout = () => {
               { name: "Home", path: basePath, end: true },
               { name: "Profile", path: `${basePath}/profile`, end: false },
               { name: "Project", path: lastProjectPath, end: false },
-              { name: "Sell", path: `${basePath}/sell`, end: false },
+              { name: "Deal", path: `${basePath}/deal`, end: false },
               { name: "Team", path: `${basePath}/team`, end: false },
             ].map((tab) => (
               <NavLink

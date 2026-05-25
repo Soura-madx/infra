@@ -73,18 +73,28 @@ const ProjectDetail = () => {
           brochureUrl: item.brochure_file
             ? `https://workiees.com/${item.brochure_file}`
             : "",
-          videoUrl: item.video_url || "",
+          galleryImages: Array.isArray(item.project_images)
+            ? item.project_images
+                .map((img) => {
+                  const imagePath =
+                    typeof img === "string"
+                      ? img
+                      : img.image || img.image_url || img.url || img.path || "";
 
-          galleryImages: Array.isArray(item.images)
-            ? item.images
-            : typeof item.images === "string"
-              ? item.images
-                  .split(",")
-                  .map((img) => img.trim())
-                  .filter(Boolean)
-              : item.image
-                ? [item.image]
-                : [],
+                  if (!imagePath) return null;
+
+                  return imagePath.startsWith("http")
+                    ? imagePath
+                    : `https://workiees.com/${imagePath}`;
+                })
+                .filter(Boolean)
+            : [],
+
+          videoUrl: item.video_url
+            ? item.video_url.startsWith("http")
+              ? item.video_url
+              : `https://workiees.com/${item.video_url}`
+            : "",
           amenities:
             typeof item.amenities === "string"
               ? item.amenities

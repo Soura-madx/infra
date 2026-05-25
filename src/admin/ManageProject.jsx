@@ -6,13 +6,12 @@ import PrarambhLoader from "../component/PrarambhLoader";
 const EditProject = () => {
   const navigate = useNavigate();
   const { id } = useParams();
- 
+
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [projectNotFound, setProjectNotFound] = useState(false);
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState(null);
-  
 
   const [formData, setFormData] = useState({
     id: "",
@@ -48,99 +47,105 @@ const EditProject = () => {
 
   useEffect(() => {
     const fetchProject = async () => {
-      try {
-        setLoading(true);
-        setError("");
-        setProjectNotFound(false);
+  try {
+    setLoading(true);
+    setError("");
+    setProjectNotFound(false);
 
-        // YAHAN apna actual fetch endpoint lagao
-        // Example:
-        // const response = await fetch(`https://workiees.com/api/projects/details?id=${id}`);
+    const response = await fetch(
+      `https://workiees.com/api/projects/${id}`
+    );
 
-        const response = await fetch(
-          `https://workiees.com/api/projects/update/${id}`,
-        );
-        const text = await response.text();
-        console.log("PROJECT DETAILS RAW:", text);
+    const text = await response.text();
 
-        let result;
-        try {
-          result = JSON.parse(text);
-        } catch {
-          throw new Error("Project details API JSON return nahi kar rahi");
-        }
+    console.log("PROJECT RAW:", text);
 
-        console.log("PROJECT DETAILS PARSED:", result);
+    let result;
 
-        const project =
-          result?.project || result?.data?.project || result?.data || result;
+    try {
+      result = JSON.parse(text);
+    } catch (err) {
+      throw new Error("Invalid JSON response");
+    }
 
-        if (!project || typeof project !== "object") {
-          setProjectNotFound(true);
-          return;
-        }
+    console.log("PROJECT PARSED:", result);
 
-        setFormData({
-          id: project.id || id || "",
-          name: project.project_name || project.name || "",
-          developerName: project.developer_name || project.developerName || "",
-          city: project.city || "",
-          address: project.full_address || project.address || "",
-          status: project.status || "",
-          type: project.project_type || project.type || "",
-          possession: project.construction_status || project.possession || "",
-          marketValue: project.market_value || project.marketValue || "",
-          totalPlot: project.total_plots || project.totalPlot || "",
-          builtUpArea: project.build_area || project.builtUpArea || "",
-          reraNo: project.rera_number || project.reraNo || "",
-          mapLink: project.location || project.mapLink || "",
-          ratePerSqft: project.rate_per_sqft || project.ratePerSqft || "",
-          budgetRange: project.budget_range || project.budgetRange || "",
-          description: project.description || "",
-          brochureFileName:
-            project.brochure_file || project.brochureFileName || "",
-          galleryImages: Array.isArray(project.images) ? project.images : [],
-          videoUrl: project.video_url || project.videoUrl || "",
-          amenities: Array.isArray(project.amenities)
-            ? project.amenities.length
-              ? project.amenities
-              : [""]
-            : typeof project.amenities === "string"
-              ? project.amenities
-                  .split(",")
-                  .map((item) => item.trim())
-                  .filter(Boolean).length
-                ? project.amenities
-                    .split(",")
-                    .map((item) => item.trim())
-                    .filter(Boolean)
-                : [""]
-              : [""],
-          specialities: Array.isArray(
-            project.specialities || project.speciality,
-          )
-            ? project.specialities || project.speciality
-            : typeof (project.specialities || project.speciality) === "string"
-              ? (project.specialities || project.speciality)
-                  .split(",")
-                  .map((item) => item.trim())
-                  .filter(Boolean).length
-                ? (project.specialities || project.speciality)
-                    .split(",")
-                    .map((item) => item.trim())
-                    .filter(Boolean)
-                : [""]
-              : [""],
-          reraApproved:
-            project.rera_approved == 1 || project.reraApproved === true,
-        });
-      } catch (err) {
-        console.error("Fetch project error:", err);
-        setError(err.message || "Project load nahi ho paya");
-      } finally {
-        setLoading(false);
-      }
-    };
+    const project =
+      result?.data ||
+      result?.project ||
+      result;
+
+    if (!project || typeof project !== "object") {
+      setProjectNotFound(true);
+      return;
+    }
+
+    setFormData({
+      id: project.id || "",
+
+      name: project.project_name || "",
+
+      developerName: project.developer_name || "",
+
+      city: project.city || "",
+
+      address: project.full_address || "",
+
+      status: project.status || "",
+
+      type: project.project_type || "",
+
+      possession: project.construction_status || "",
+
+      marketValue: project.market_value || "",
+
+      totalPlot: project.total_plots || "",
+
+      builtUpArea: project.build_area || "",
+
+      reraNo: project.rera_number || "",
+
+      mapLink: project.location || "",
+
+      ratePerSqft: project.rate_per_sqft || "",
+
+      budgetRange: project.budget_range || "",
+
+      description: project.description || "",
+
+      brochureFileName: project.brochure_file || "",
+
+      videoUrl: project.video_url || "",
+
+      galleryImages: Array.isArray(project.project_images)
+        ? project.project_images
+        : [],
+
+      amenities:
+        typeof project.amenities === "string"
+          ? project.amenities
+              .split(",")
+              .map((item) => item.trim())
+              .filter(Boolean)
+          : [],
+
+      specialities:
+        typeof project.specialities === "string"
+          ? project.specialities
+              .split(",")
+              .map((item) => item.trim())
+              .filter(Boolean)
+          : [],
+
+      reraApproved: false,
+    });
+  } catch (err) {
+    console.error("FETCH ERROR:", err);
+    setError(err.message || "Project load failed");
+  } finally {
+    setLoading(false);
+  }
+};
 
     if (id) fetchProject();
   }, [id]);
@@ -235,103 +240,175 @@ const EditProject = () => {
     return "";
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    try {
-      setSubmitting(true);
-      setError("");
+  try {
+    setSubmitting(true);
+    setError("");
 
-      const payload = new FormData();
+    const payload = new FormData();
 
-      payload.append("project_id", String(id));
-      payload.append("project_name", formData.name?.trim() || "");
-      payload.append("description", formData.description?.trim() || "");
-      payload.append("developer_name", formData.developerName?.trim() || "");
-      payload.append("rera_number", formData.reraNo?.trim() || "");
+    // =========================
+    // TEXT FIELDS
+    // =========================
 
-      // ✅ FIXED ENUM
-      payload.append("project_type", normalizeType(formData.type));
-      payload.append("status", normalizeStatus(formData.status));
+    payload.append("project_name", formData.name || "");
 
-      payload.append("construction_status", formData.possession?.trim() || "");
-      payload.append("full_address", formData.address?.trim() || "");
-      payload.append("location", formData.mapLink?.trim() || "");
-      payload.append("city", formData.city?.trim() || "");
+    payload.append("developer_name", formData.developerName || "");
 
-      if (formData.marketValue)
-        payload.append("market_value", normalizeNumber(formData.marketValue));
+    payload.append("city", formData.city || "");
 
-      if (formData.totalPlot)
-        payload.append("total_plots", normalizeNumber(formData.totalPlot));
+    payload.append("full_address", formData.address || "");
 
-      if (formData.ratePerSqft)
-        payload.append("rate_per_sqft", normalizeNumber(formData.ratePerSqft));
+    payload.append("status", formData.status || "");
 
-      payload.append("build_area", formData.builtUpArea?.trim() || "");
-      payload.append("budget_range", formData.budgetRange?.trim() || "");
+    payload.append("project_type", formData.type || "");
 
-      payload.append(
-        "amenities",
-        formData.amenities
-          .map((i) => i.trim())
-          .filter(Boolean)
-          .join(","),
-      );
+    payload.append(
+      "construction_status",
+      formData.possession || ""
+    );
 
-      payload.append(
-        "specialities",
-        formData.specialities
-          .map((i) => i.trim())
-          .filter(Boolean)
-          .join(","),
-      );
+    payload.append(
+      "market_value",
+      formData.marketValue || ""
+    );
 
-      payload.append("rera_approved", formData.reraApproved ? "1" : "0");
+    payload.append(
+      "total_plots",
+      formData.totalPlot || ""
+    );
 
-      // ✅ FILE FIX
-      if (newVideo) {
-        payload.append("video", newVideo);
-      }
+    payload.append(
+      "build_area",
+      formData.builtUpArea || ""
+    );
 
-      if (newBrochure) {
-        payload.append("brochure", newBrochure);
-      }
+    payload.append(
+      "rera_number",
+      formData.reraNo || ""
+    );
 
-      newImages.forEach((file) => {
-        payload.append("images[]", file);
-      });
+    payload.append(
+      "location",
+      formData.mapLink || ""
+    );
 
-      console.log("--------- PAYLOAD ---------");
-      for (const pair of payload.entries()) {
-        console.log(pair[0], pair[1]);
-      }
+    payload.append(
+      "rate_per_sqft",
+      formData.ratePerSqft || ""
+    );
 
-      const response = await fetch("https://workiees.com/api/projects/update", {
+    payload.append(
+      "budget_range",
+      formData.budgetRange || ""
+    );
+
+    payload.append(
+      "description",
+      formData.description || ""
+    );
+
+    // =========================
+    // ARRAYS
+    // =========================
+
+    payload.append(
+      "amenities",
+      (formData.amenities || [])
+        .map((item) => item.trim())
+        .filter(Boolean)
+        .join(", ")
+    );
+
+    payload.append(
+      "specialities",
+      (formData.specialities || [])
+        .map((item) => item.trim())
+        .filter(Boolean)
+        .join(", ")
+    );
+
+    // =========================
+    // IMAGES
+    // Backend expects:
+    // project_images[]
+    // =========================
+
+    newImages.forEach((file) => {
+      payload.append("project_images[]", file);
+    });
+
+    // =========================
+    // VIDEO
+    // Backend expects:
+    // video_file
+    // =========================
+
+    if (newVideo) {
+      payload.append("video_file", newVideo);
+    }
+
+    // =========================
+    // BROCHURE
+    // Backend expects:
+    // brochure_file
+    // =========================
+
+    if (newBrochure) {
+      payload.append("brochure_file", newBrochure);
+    }
+
+    console.log("========= PAYLOAD =========");
+
+    for (let pair of payload.entries()) {
+      console.log(pair[0], pair[1]);
+    }
+
+    const response = await fetch(
+      `https://workiees.com/api/projects/update/${id}`,
+      {
         method: "POST",
         body: payload,
-      });
-
-      const result = await response.json();
-
-      if (!response.ok || result.status === false) {
-        throw new Error(result.message || "Validation error");
       }
+    );
 
-      alert("Project updated successfully");
-      navigate(`/admin/projects/manage/${id}`);
-    } catch (error) {
-      console.error(error);
-      setError(error.message);
-    } finally {
-      setSubmitting(false);
+    const text = await response.text();
+
+    console.log("RAW RESPONSE:", text);
+
+    let result;
+
+    try {
+      result = JSON.parse(text);
+    } catch (err) {
+      throw new Error("Invalid JSON response");
     }
-  };
+
+    console.log("RESULT:", result);
+
+    if (!response.ok || result.status === false) {
+      throw new Error(result.message || "Update failed");
+    }
+
+    alert("Project updated successfully");
+
+    navigate(`/admin/projects/${id}`);
+  } catch (error) {
+    console.error(error);
+
+    setError(error.message || "Project update failed");
+  } finally {
+    setSubmitting(false);
+  }
+};
+
   if (loading) {
     return (
       <div className="max-w-6xl mx-auto p-6">
         <div className="bg-white border border-gray-100 rounded-2xl p-10 text-center">
-          <PrarambhLoader/>
+          <PrarambhLoader />
         </div>
       </div>
     );
@@ -355,35 +432,35 @@ const EditProject = () => {
     );
   }
 
- const handleDeleteProject = async () => {
-  const confirmDelete = window.confirm("Are you sure?");
-  if (!confirmDelete) return;
+  const handleDeleteProject = async () => {
+    const confirmDelete = window.confirm("Are you sure?");
+    if (!confirmDelete) return;
 
-  try {
-    const response = await fetch("https://workiees.com/api/projects/delete", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ project_id: id }),
-    });
+    try {
+      const response = await fetch("https://workiees.com/api/projects/delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ project_id: id }),
+      });
 
-    const result = await response.json();
+      const result = await response.json();
 
-    if (!response.ok || result.status === false) {
-      throw new Error(result.message || "Delete failed");
+      if (!response.ok || result.status === false) {
+        throw new Error(result.message || "Delete failed");
+      }
+
+      alert("Deleted successfully");
+
+      // 🔥 EVENT FIRE
+      window.dispatchEvent(new Event("projectDeleted"));
+
+      navigate("/admin/project");
+    } catch (error) {
+      alert(error.message);
     }
-
-    alert("Deleted successfully");
-
-    // 🔥 EVENT FIRE
-    window.dispatchEvent(new Event("projectDeleted"));
-
-    navigate("/admin/project");
-  } catch (error) {
-    alert(error.message);
-  }
-};
+  };
 
   return (
     <div
@@ -769,7 +846,6 @@ const EditProject = () => {
                 <button
                   type="button"
                   onClick={() => removeArrayField("specialities", index)}
-                  
                   className="w-11 h-11 rounded-xl bg-red-50 text-red-600 flex items-center justify-center"
                 >
                   <Trash2 size={16} />

@@ -157,8 +157,7 @@ const nodeTypes = {
 // MAIN
 // ======================================================
 
-function 
-TeamManagementContent() {
+function TeamManagementContent() {
   const reactFlowInstance = useRef(null);
 
   const [advisors, setAdvisors] = useState([]);
@@ -181,7 +180,7 @@ TeamManagementContent() {
 
   const [selectedAdvisor, setSelectedAdvisor] = useState(null);
 
-  const [advisorType, setAdvisorType] = useState("full time");
+  const [advisorType, setAdvisorType] = useState("");
 
   // PAGINATION
 
@@ -212,6 +211,68 @@ TeamManagementContent() {
       console.log(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedAdvisor?.advisor_type) {
+      setAdvisorType(selectedAdvisor.advisor_type);
+    }
+  }, [selectedAdvisor]);
+
+  // ======================================================
+  // TOGGLE ADVISOR TYPE
+  // ======================================================
+
+  const handleAdvisorTypeToggle = async () => {
+    try {
+      // GET ADVISOR ID
+
+      const advisorId = selectedAdvisor?._id || selectedAdvisor?.id;
+
+      if (!advisorId) {
+        console.log("Advisor ID not found");
+        return;
+      }
+
+      // TOGGLE VALUE
+
+      const updatedType =
+        advisorType === "Full Time" ? "Part Time" : "Full Time";
+
+      // UPDATE FRONTEND UI
+
+      setAdvisorType(updatedType);
+
+      // UPDATE SELECTED ADVISOR STATE
+
+      setSelectedAdvisor((prev) => ({
+        ...prev,
+        advisor_type: updatedType,
+      }));
+
+      // OPTIONAL API UPDATE
+
+      await axios.put(`https://workiees.com/api/advisor/update/${advisorId}`, {
+        advisor_type: updatedType,
+      });
+
+      // UPDATE LIST ALSO
+
+      setAdvisors((prev) =>
+        prev.map((advisor) =>
+          (advisor._id || advisor.id) === advisorId
+            ? {
+                ...advisor,
+                advisor_type: updatedType,
+              }
+            : advisor,
+        ),
+      );
+
+      console.log("Advisor type updated");
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -624,6 +685,26 @@ TeamManagementContent() {
     </div>
   );
 
+  const DocumentCard = ({ title, image }) => (
+    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+      {image ? (
+        <img
+          src={image}
+          alt={title}
+          className="w-full h-[220px] object-cover"
+        />
+      ) : (
+        <div className="w-full h-[220px] flex items-center justify-center text-gray-400">
+          No Image
+        </div>
+      )}
+
+      <div className="p-4">
+        <h4 className="font-semibold text-center">{title}</h4>
+      </div>
+    </div>
+  );
+
   // ======================================================
   // UI
   // ======================================================
@@ -823,6 +904,117 @@ TeamManagementContent() {
               /* COMPLETE ADVISOR DETAILS SECTION */
               /* ====================================================== */}
 
+              {/* ====================================================== */}
+              {/* PROFILE HEADER */}
+              {/* ====================================================== */}
+
+              <div className="bg-gradient-to-r from-[#005596] to-[#0A6BC2] rounded-3xl p-6 text-white mb-6">
+                <div className="flex flex-col md:flex-row md:items-center gap-6">
+                  {/* PROFILE IMAGE */}
+
+                  <div className="flex justify-center md:justify-start">
+                    {selectedAdvisor?.profile ||
+                    selectedAdvisor?.profile_photo ? (
+                      <img
+                        src={
+                          selectedAdvisor?.profile ||
+                          selectedAdvisor?.profile_photo
+                        }
+                        alt={selectedAdvisor?.name}
+                        className="w-28 h-28 rounded-3xl object-cover border-4 border-white/30 shadow-xl"
+                      />
+                    ) : (
+                      <div className="w-28 h-28 rounded-3xl bg-white/20 flex items-center justify-center text-4xl font-bold border border-white/20">
+                        {selectedAdvisor?.name
+                          ?.split(" ")
+                          ?.map((n) => n[0])
+                          ?.join("")
+                          ?.slice(0, 2)
+                          ?.toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* DETAILS */}
+
+                  <div className="flex-1">
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                      <div>
+                        <h2 className="text-3xl font-bold capitalize">
+                          {selectedAdvisor?.full_name || "-"}
+                        </h2>
+
+                        <p className="text-white/80 mt-1 capitalize">
+                          {selectedAdvisor?.designation || "Advisor"}
+                        </p>
+                      </div>
+
+                      {/* ACTIVE BADGE */}
+
+                      <div>
+                        <span
+                          className={`px-5 py-2 rounded-full text-sm font-semibold ${
+                            selectedAdvisor?.status?.toLowerCase() === "active"
+                              ? "bg-green-500 text-white"
+                              : selectedAdvisor?.status?.toLowerCase() ===
+                                  "pending"
+                                ? "bg-yellow-400 text-black"
+                                : "bg-red-500 text-white"
+                          }`}
+                        >
+                          {selectedAdvisor?.status || "Active"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* QUICK INFO */}
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                      {/* ADVISOR CODE */}
+
+                      <div className="bg-white/10 rounded-2xl p-4 backdrop-blur-sm">
+                        <p className="text-white/70 text-sm">Advisor Code</p>
+
+                        <h4 className="font-bold text-lg mt-1">
+                          {selectedAdvisor?.Advisor_code ||
+                            selectedAdvisor?.advisorId ||
+                            "-"}
+                        </h4>
+                      </div>
+
+                      {/* PHONE */}
+
+                      <div className="bg-white/10 rounded-2xl p-4 backdrop-blur-sm">
+                        <p className="text-white/70 text-sm">Advisor Type</p>
+
+                        <h4 className="font-bold text-lg mt-1">
+                          {selectedAdvisor?.advisor_type || "-"}
+                        </h4>
+                      </div>
+
+                      {/* EMAIL */}
+
+                      <div className="bg-white/10 rounded-2xl p-4 backdrop-blur-sm">
+                        <p className="text-white/70 text-sm">Leader</p>
+
+                        <h4 className="font-bold text-lg mt-2 capitalize text-[#fcfdff]">
+                          {selectedAdvisor?.leader_name || "Admin"}
+                        </h4>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ====================================================== */}
+              {/* ADD THIS IN WORK DETAILS SECTION */}
+              {/* ====================================================== */}
+
+              <DetailItem
+                label="Reference Person"
+                value={selectedAdvisor?.reference_person}
+              />
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
                 {/* ====================================================== */}
                 {/* PERSONAL DETAILS */}
@@ -835,8 +1027,8 @@ TeamManagementContent() {
 
                   <div className="space-y-4">
                     <DetailItem
-                      label="Full Name"
-                      value={selectedAdvisor?.name}
+                      label="Application Number"
+                      value={selectedAdvisor?.application_number}
                     />
 
                     <DetailItem
@@ -859,25 +1051,38 @@ TeamManagementContent() {
                       }
                     />
 
+                    <DetailItem label="Phone" value={selectedAdvisor?.phone} />
+
+                    <DetailItem label="Email" value={selectedAdvisor?.email} />
+
                     <DetailItem
                       label="Gender"
                       value={selectedAdvisor?.gender}
                     />
 
                     <DetailItem
-                      label="Occupation"
-                      value={
-                        selectedAdvisor?.occupation ||
-                        selectedAdvisor?.profession
-                      }
+                      label="Marital Status"
+                      value={selectedAdvisor?.marital_status}
                     />
 
                     <DetailItem
-                      label="Address"
-                      value={
-                        selectedAdvisor?.address ||
-                        selectedAdvisor?.full_address
-                      }
+                      label="Nationality"
+                      value={selectedAdvisor?.nationality}
+                    />
+
+                    <DetailItem
+                      label="Occupation"
+                      value={selectedAdvisor?.occupation}
+                    />
+
+                    <DetailItem
+                      label="Primary Profession"
+                      value={selectedAdvisor?.primary_profession}
+                    />
+
+                    <DetailItem
+                      label="Qualification"
+                      value={selectedAdvisor?.qualification}
                     />
 
                     <DetailItem
@@ -894,10 +1099,20 @@ TeamManagementContent() {
                         selectedAdvisor?.pan || selectedAdvisor?.pan_number
                       }
                     />
+
+                    {/* FULL ADDRESS */}
+
+                    <DetailItem
+                      label="Address"
+                      value={`
+${selectedAdvisor?.address || ""}, 
+${selectedAdvisor?.city || ""}, 
+${selectedAdvisor?.state || ""} - 
+${selectedAdvisor?.pincode || ""}
+`}
+                    />
                   </div>
                 </div>
-
-                {/* ====================================================== */}
                 {/* WORK DETAILS */}
                 {/* ====================================================== */}
 
@@ -907,68 +1122,61 @@ TeamManagementContent() {
                   </h3>
 
                   <div className="space-y-4">
-                    <DetailItem
-                      label="Designation"
-                      value={selectedAdvisor?.designation}
-                    />
+                    {/* ====================================================== */}
+                    {/* ADVISOR TYPE TOGGLE */}
+                    {/* ====================================================== */}
 
-                    {/* ADVISOR TYPE SWITCH */}
-
-                    <div className="flex items-center justify-between border-b border-gray-200 pb-3">
+                    <div className="flex items-center justify-between border-b border-gray-200 pb-4">
                       <div>
                         <p className="text-sm text-gray-500">Advisor Type</p>
 
-                        <p className="font-semibold text-[#111827] mt-1 capitalize">
-                          {advisorType}
+                        <p
+                          className={`font-bold text-lg mt-1 capitalize ${
+                            selectedAdvisor?.advisor_type === "Full Time"
+                              ? "text-green-600"
+                              : "text-orange-500"
+                          }`}
+                        >
+                          {selectedAdvisor?.advisor_type || "-"}
                         </p>
                       </div>
-
                       <button
-                        onClick={() =>
-                          setAdvisorType((prev) =>
-                            prev === "full time" ? "part time" : "full time",
-                          )
-                        }
+                        onClick={handleAdvisorTypeToggle}
                         className={`h-[42px] px-5 rounded-2xl text-sm font-semibold transition-all ${
-                          advisorType === "full time"
+                          advisorType === "Full Time"
                             ? "bg-green-100 text-green-700"
                             : "bg-yellow-100 text-yellow-700"
                         }`}
                       >
                         Switch to{" "}
-                        {advisorType === "full time"
+                        {advisorType === "Full Time"
                           ? "Part Time"
                           : "Full Time"}
                       </button>
                     </div>
-
                     <DetailItem
                       label="Commission Slab"
-                      value={selectedAdvisor?.commission_slab || "5% - 12%"}
+                      value={selectedAdvisor?.slab || "5% - 12%"}
                     />
 
                     <DetailItem
-                      label="Advisor Code"
-                      value={
-                        selectedAdvisor?.Advisor_code ||
-                        selectedAdvisor?.advisorId
-                      }
+                      label="Branch Code"
+                      value={selectedAdvisor?.branch_code}
                     />
 
                     <DetailItem
-                      label="Status"
-                      value={selectedAdvisor?.status || "Active"}
+                      label="Head Office"
+                      value={selectedAdvisor?.head_office}
                     />
 
                     <DetailItem
-                      label="Joined Date"
-                      value={
-                        selectedAdvisor?.created_at
-                          ? new Date(
-                              selectedAdvisor?.created_at,
-                            ).toLocaleDateString()
-                          : "-"
-                      }
+                      label="Branch Location"
+                      value={selectedAdvisor?.branch_location}
+                    />
+
+                    <DetailItem
+                      label="Reference Person"
+                      value={selectedAdvisor?.reference_person}
                     />
                   </div>
                 </div>
@@ -1073,6 +1281,42 @@ TeamManagementContent() {
                         {selectedAdvisor?.leader_designation || "Admin"}
                       </h4>
                     </div>
+                  </div>
+                </div>
+
+                <div className="bg-[#F8FAFC] rounded-3xl p-6 md:col-span-2">
+                  <h3 className="font-bold text-xl text-[#111827] mb-5">
+                    KYC Documents
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                    {/* AADHAAR FRONT */}
+
+                    <DocumentCard
+                      title="Aadhaar Front"
+                      image={selectedAdvisor?.addresscard_front_photo}
+                    />
+
+                    {/* AADHAAR BACK */}
+
+                    <DocumentCard
+                      title="Aadhaar Back"
+                      image={selectedAdvisor?.addresscard_back_photo}
+                    />
+
+                    {/* PAN FRONT */}
+
+                    <DocumentCard
+                      title="PAN Front"
+                      image={selectedAdvisor?.pancard_photo}
+                    />
+
+                    {/* PAN BACK */}
+
+                    <DocumentCard
+                      title="PAN Back"
+                      image={selectedAdvisor?.pancard_back_photo}
+                    />
                   </div>
                 </div>
               </div>

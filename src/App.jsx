@@ -62,6 +62,7 @@ import Recruitment from "./admin/Recruitment";
 import RegisterAdvisor from "./component/auth/Signup";
 import AdvisorRegistration from "./admin/RegisterAdvisor";
 import AdvisorTreeView from "./admin/Team";
+import Deal from "./admin/Deal";
 
 
 function App() {
@@ -151,6 +152,7 @@ function App() {
               <Route path="recruitment" element={<Recruitment />} />
               <Route path="recruitment/create" element={<AdvisorRegistration />} />
               <Route path="team" element={<AdvisorTreeView />} />
+              <Route path="deal" element={<Deal />} />
              
             </Route>
 

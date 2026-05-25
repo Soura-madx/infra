@@ -69,11 +69,18 @@ const ProjectList = () => {
           budgetRange: item.budget_range || "-",
           description: item.description || "-",
           brochureUrl: item.brochure_file || "",
-          galleryImages: Array.isArray(item.images)
-            ? item.images
-            : item.image
-            ? [item.image]
-            : [],
+      galleryImages: Array.isArray(item.project_images)
+  ? item.project_images.map((img) => {
+      const imagePath =
+        typeof img === "string"
+          ? img
+          : img.image || img.url || img.path || "";
+
+      return imagePath.startsWith("http")
+        ? imagePath
+        : `https://workiees.com/${imagePath}`;
+    })
+  : [],
           videoUrl: item.video_url || "",
           amenities:
             typeof item.amenities === "string"
