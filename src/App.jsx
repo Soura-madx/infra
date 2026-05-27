@@ -54,7 +54,7 @@ import ForgotPassword from "./component/auth/ForgotPassword";
 import BlogM from "./admin/Blog";
 import AddBlog from "./admin/AddBlog";
 import BlogDetail from "./admin/BlogDetail";
-import EditBlog from "./admin/EditBlog"
+import EditBlog from "./admin/EditBlog";
 import TermsConditionsPage from "./component/TermCondition";
 import PrivacyPolicy from "./component/PrivacyPolicy";
 import PendingAdvisor from "./admin/PendingAdvisor";
@@ -63,7 +63,7 @@ import RegisterAdvisor from "./component/auth/Signup";
 import AdvisorRegistration from "./admin/RegisterAdvisor";
 import AdvisorTreeView from "./admin/Team";
 import Deal from "./admin/Deal";
-
+import DealDetails from "./admin/DealDetails";
 
 function App() {
   const [showSplash, setShowSplash] = useState(true);
@@ -89,11 +89,11 @@ function App() {
             <Route path="/contact-us" element={<ContactPrarambh />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/login" element={<LoginPage />} />
-            
-            <Route path="/termcondition" element={<TermsConditionsPage/>} />
-            <Route path="/forgot-password" element={<ForgotPassword/>} /> 
-            <Route path="/privacypolicy" element={<PrivacyPolicy/>} /> 
 
+            <Route path="/termcondition" element={<TermsConditionsPage />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/privacypolicy" element={<PrivacyPolicy />} />
+            <Route path="/deals/:id" element={<DealDetails />} />
 
             {/* --- PROTECTED ADVISOR ROUTES --- */}
             <Route
@@ -117,7 +117,7 @@ function App() {
               <Route path="profile" element={<Profile />} />
               <Route path="project" element={<Project />} />
               <Route path="sell" element={<Sell />} />
-              
+
               <Route path="notifications" element={<Notification />} />
               <Route path="profile/edit" element={<EditProfile />} />
               <Route path="project/:id/inventory" element={<UnitInventory />} />
@@ -142,7 +142,6 @@ function App() {
               <Route path="/admin/blogs/:id" element={<BlogDetail />} />
               <Route path="/admin/edit-blogs/:id" element={<EditBlog />} />
 
-             
               <Route path="projects/create" element={<CreateProject />} />
               <Route path="projects/:id" element={<ProjectDetailM />} />
               <Route path="projects/manage/:id" element={<EditProject />} />
@@ -150,10 +149,12 @@ function App() {
               <Route path="projects/unit/edit" element={<EditUnit />} />
               <Route path="pending_advisors" element={<PendingAdvisor />} />
               <Route path="recruitment" element={<Recruitment />} />
-              <Route path="recruitment/create" element={<AdvisorRegistration />} />
+              <Route
+                path="recruitment/create"
+                element={<AdvisorRegistration />}
+              />
               <Route path="team" element={<AdvisorTreeView />} />
               <Route path="deal" element={<Deal />} />
-             
             </Route>
 
             <Route path="*" element={<div>404 Not Found</div>} />

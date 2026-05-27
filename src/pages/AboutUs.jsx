@@ -6,6 +6,8 @@ import Navbar from "../component/Navbar";
 import WhyChoosePrarambh from "../component/whychooseus";
 import Footer from '../component/footer'
 import Overview from "../component/overview";
+import LeadershipSection from "../component/Team";
+
 const AboutPrarambhInfra = () => {
   return (
     <div className="min-h-screen bg-[#f3f4f6]">
@@ -20,8 +22,8 @@ const AboutPrarambhInfra = () => {
 
       </section>
       <section id="teams">
-      <LeadershipSection />
-
+      
+    <LeadershipSection/>
       </section>
 
       <section id="mission-vision">

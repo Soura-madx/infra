@@ -4,6 +4,7 @@ import Navbar from "../component/Navbar";
 import Footer from "../component/footer";
 import { MapPin, Share2 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 const primaryBlue = "#005596";
 
@@ -58,9 +59,12 @@ const FilterSelect = ({ label, value, onChange, options }) => (
 
 /* ---------------- MAIN PAGE ---------------- */
 const PropertyListingPage = () => {
+  const location = useLocation();
   const [units, setUnits] = useState([]);
   const [projects, setProjects] = useState([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  const queryParams = new URLSearchParams(location.search);
 
   const navigate = useNavigate();
   const { projectId } = useParams();
@@ -79,18 +83,59 @@ const PropertyListingPage = () => {
 
   const [filters, setFilters] = useState({
     project: "",
-    type: "",
+    type: queryParams.get("type") || "",
     configuration: "",
-    saleCategory: "",
+    saleCategory: queryParams.get("saleCategory") || "",
     facing: "",
     location: "",
-    city: "",
+    city: queryParams.get("city") || "",
     area: [0, 5000],
     price: [0, 10000],
   });
-
   /* -------- FETCH -------- */
   const [loading, setLoading] = useState(true); // Set initial to true
+
+  useEffect(() => {
+    const budgetParam = queryParams.get("budget");
+    if (budgetParam) {
+      if (budgetParam.includes("+")) {
+        // Handle "20000000+" case
+        const min = parseInt(budgetParam.replace("+", ""));
+        setFilters((prev) => ({
+          ...prev,
+          price: [min / 100000, 1000], // Convert to lakhs (50L = 5000000/100000 = 50)
+        }));
+      } else {
+        // Handle "0-5000000" case
+        const [min, max] = budgetParam.split("-").map(Number);
+        setFilters((prev) => ({
+          ...prev,
+          price: [min / 100000 || 0, max / 100000 || 1000], // Convert to lakhs
+        }));
+      }
+    }
+
+    const areaParam = queryParams.get("area");
+    if (areaParam) {
+      if (areaParam.includes("+")) {
+        // Handle "4000+" case
+        const min = parseInt(areaParam.replace("+", ""));
+        setFilters((prev) => ({
+          ...prev,
+          area: [min, 10000],
+        }));
+      } else {
+        // Handle "1000-2000" case
+        const [min, max] = areaParam.split("-").map(Number);
+        setFilters((prev) => ({
+          ...prev,
+          area: [min || 0, max || 5000],
+        }));
+      }
+    }
+  }, [location.search]);
+
+  // Add this right after the filtered useMemo
 
   /* -------- FETCH -------- */
   useEffect(() => {
@@ -216,6 +261,12 @@ const PropertyListingPage = () => {
   /* -------- FILTER LOGIC -------- */
   const filtered = useMemo(() => {
     return mapped.filter((p) => {
+      const budgetMin = filters.price[0]; // Already in lakhs/thousands from URL
+      const budgetMax = filters.price[1];
+      const totalPriceInLakhs = p.totalPrice / 100000; // Convert to lakhs for comparison
+
+      const passBudget =
+        totalPriceInLakhs >= budgetMin && totalPriceInLakhs <= budgetMax;
       return (
         (!filters.project || p.project === filters.project) &&
         (!filters.type || p.type === filters.type) &&
@@ -227,8 +278,7 @@ const PropertyListingPage = () => {
         (!filters.city || p.city === filters.city) &&
         p.area >= filters.area[0] &&
         p.area <= filters.area[1] &&
-        p.price >= filters.price[0] &&
-        p.price <= filters.price[1]
+        passBudget
       );
     });
   }, [mapped, filters]);
@@ -393,8 +443,28 @@ const PropertyListingPage = () => {
           {/* FILTERS */}
           <div className="hidden lg:block space-y-4 lg:sticky lg:top-2 self-start">
             <div className="bg-white p-4 rounded shadow space-y-4">
-              <h2 className="font-bold text-lg">Filters</h2>
+              <div className="flex justify-between">
 
+
+              <h2 className="font-bold text-lg">Filters</h2>
+              <button
+                onClick={() =>
+                  setFilters({
+                    project: "",
+                    type: "",
+                    configuration: "",
+                    saleCategory: "",
+                    facing: "",
+                    location: "",
+                    area: [0, 5000],
+                    price: [0, 10000],
+                  })
+                }
+                className="px-5 py-2 bg-black text-white py-2 rounded"
+              >
+               All Units
+              </button>
+              </div>
               <FilterSelect
                 label="Project"
                 value={filters.project}
@@ -464,9 +534,8 @@ const PropertyListingPage = () => {
               <RangeSlider
                 label="Area Sqft"
                 min={0}
-                max={5000}
+                max={10000} // Increased max to handle larger properties
                 value={filters.area}
-                // whenever you call setFilters, also reset page
                 onChange={(v) => {
                   setFilters({ ...filters, area: v });
                   setCurrentPage(1);
@@ -474,11 +543,10 @@ const PropertyListingPage = () => {
               />
 
               <RangeSlider
-                label="Rate / Sqft"
+                label="Budget (Lakhs)"
                 min={0}
-                max={20000}
+                max={1000} // 1000 lakhs = 10 crores
                 value={filters.price}
-                // whenever you call setFilters, also reset page
                 onChange={(v) => {
                   setFilters({ ...filters, price: v });
                   setCurrentPage(1);
@@ -508,120 +576,124 @@ const PropertyListingPage = () => {
           {/* LIST */}
 
           <div className="space-y-4 ">
+            {loading ? (
+              // Show 3 skeletons while loading
+              [1, 2, 3].map((i) => <PropertySkeleton key={i} />)
+            ) : paginated.length > 0 ? (
+              paginated.map((p) => (
+                <div
+                  key={p.id}
+                  className="rounded-sm mt-3 bg-white border border-slate-100 shadow-sm overflow-hidden  transition-all duration-500"
+                >
+                  <div className="grid gap-0 md:grid-cols-[0.4fr_0.6fr]">
+                    <div className="relative w-full h-[220px] overflow-hidden">
+                      <img
+                        src={p.photo}
+                        alt={p.projectName}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      />
+                    </div>
 
-                {loading ? (
-            // Show 3 skeletons while loading
-            [1, 2, 3].map((i) => <PropertySkeleton key={i} />)
-          ) : paginated.length > 0 ? (
-            paginated.map((p) => (
-              <div className="rounded-sm mt-3 bg-white border border-slate-100 shadow-sm overflow-hidden  transition-all duration-500">
-                <div className="grid gap-0 md:grid-cols-[0.4fr_0.6fr]">
-                  <div className="relative w-full h-[220px] overflow-hidden">
-                    <img
-                      src={p.photo}
-                      alt={p.projectName}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    />
-                  </div>
-
-                  <div className="p-5 flex flex-col gap-4">
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-semibold text-slate-900">
-                            {p.projectName}
-                          </p>
-                          <h1 className="text-lg  text-slate-900   ">
-                            {p.title}
-                          </h1>
-                          <div className="flex items-center gap-1 text-slate-400 mt-1">
-                            <MapPin size={12} />
-                            <p className="text-[11px]  uppercase tracking-tighter">
-                              {p.plotNo}, {p.towerName}, {p.projectAddress},{" "}
-                              {p.city}
+                    <div className="p-5 flex flex-col gap-4">
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-semibold text-slate-900">
+                              {p.projectName}
+                            </p>
+                            <h1 className="text-lg  text-slate-900   ">
+                              {p.title}
+                            </h1>
+                            <div className="flex items-center gap-1 text-slate-400 mt-1">
+                              <MapPin size={12} />
+                              <p className="text-[11px]  uppercase tracking-tighter">
+                                {p.plotNo}, {p.towerName}, {p.projectAddress},{" "}
+                                {p.city}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-lg  text-slate-900 leading-none">
+                              ` ₹ {p.totalPrice.toLocaleString("en-IN")}`
                             </p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-lg  text-slate-900 leading-none">
-                            ` ₹ {p.totalPrice.toLocaleString("en-IN")}`
+                      </div>
+
+                      {/* Key Specs Bar */}
+                      <div className="flex items-center gap-4 py-3 border-y border-slate-50">
+                        {p.bhk && (
+                          <>
+                            <div className="w-px h-6 bg-slate-100" />
+                            <div className="text-center">
+                              <p className="text-[10px] text-slate-400 font-bold uppercase">
+                                {p.type}
+                              </p>
+                              <p className="text-xs  text-slate-800">
+                                {p.bhk}{" "}
+                              </p>
+                            </div>
+                          </>
+                        )}
+                        <div className="w-px h-6 bg-slate-100" />
+                        <div className="text-center">
+                          <p className="text-[10px] text-slate-400 font-bold uppercase">
+                            Facing
+                          </p>
+                          <p className="text-xs  text-slate-800">
+                            {p.facing || "N/A"}
+                          </p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-[10px] text-slate-400 font-bold uppercase">
+                            Rate/Sqft
+                          </p>
+                          <p className="text-xs  text-slate-800">
+                            {p.ratePerSqft || "N/A"}
+                          </p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-[10px] text-slate-400 font-bold uppercase">
+                            Area
+                          </p>
+                          <p className="text-xs  text-slate-800">
+                            {p.areaSqft || "N/A"}
+                          </p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-[10px] text-slate-400 font-bold uppercase">
+                            Dimension
+                          </p>
+                          <p className="text-xs  text-slate-800">
+                            {p.dimension || "N/A"}
                           </p>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Key Specs Bar */}
-                    <div className="flex items-center gap-4 py-3 border-y border-slate-50">
-                      {p.bhk && (
-                        <>
-                          <div className="w-px h-6 bg-slate-100" />
-                          <div className="text-center">
-                            <p className="text-[10px] text-slate-400 font-bold uppercase">
-                              {p.type}
-                            </p>
-                            <p className="text-xs  text-slate-800">{p.bhk} </p>
-                          </div>
-                        </>
-                      )}
-                      <div className="w-px h-6 bg-slate-100" />
-                      <div className="text-center">
-                        <p className="text-[10px] text-slate-400 font-bold uppercase">
-                          Facing
-                        </p>
-                        <p className="text-xs  text-slate-800">
-                          {p.facing || "N/A"}
-                        </p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-[10px] text-slate-400 font-bold uppercase">
-                          Rate/Sqft
-                        </p>
-                        <p className="text-xs  text-slate-800">
-                          {p.ratePerSqft || "N/A"}
-                        </p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-[10px] text-slate-400 font-bold uppercase">
-                          Area
-                        </p>
-                        <p className="text-xs  text-slate-800">
-                          {p.areaSqft || "N/A"}
-                        </p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-[10px] text-slate-400 font-bold uppercase">
-                          Dimension
-                        </p>
-                        <p className="text-xs  text-slate-800">
-                          {p.dimension || "N/A"}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* RERA & Footer */}
-                    <div className="flex items-center justify-end pt-1">
-                      <Link
-                        to={`/property/${p.id}`}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <button
-                          className="px-5 py-2 rounded-sm text-white text-[11px] font-black uppercase tracking-widest shadow-lg transition-all hover:brightness-110 active:scale-95"
-                          style={{ backgroundColor: primaryBlue }}
+                      {/* RERA & Footer */}
+                      <div className="flex items-center justify-end pt-1">
+                        <Link
+                          to={`/property/${p.id}`}
+                          target="_blank"
+                          rel="noreferrer"
                         >
-                          Details
-                        </button>
-                      </Link>
+                          <button
+                            className="px-5 py-2 rounded-sm text-white text-[11px] font-black uppercase tracking-widest shadow-lg transition-all hover:brightness-110 active:scale-95"
+                            style={{ backgroundColor: primaryBlue }}
+                          >
+                            Details
+                          </button>
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </div>
+              ))
+            ) : (
+              <div className="text-center py-20 text-gray-500">
+                No properties found.
               </div>
-            ))
-          ) : (
-            <div className="text-center py-20 text-gray-500">No properties found.</div>
-          )}
-
-          
+            )}
 
             <div className="flex items-center justify-center gap-3 mt-6">
               <button
@@ -650,38 +722,45 @@ const PropertyListingPage = () => {
         </div>
 
         {/* MOBILE FILTER DRAWER */}
+        {/* MOBILE FILTER DRAWER */}
         {isFilterOpen && (
           <>
-            {/* backdrop */}
+            {/* Semi-transparent backdrop - allows seeing content behind */}
             <div
-              className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden"
+              className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[2px] lg:hidden"
               onClick={() => setIsFilterOpen(false)}
             />
 
-            {/* sheet */}
-            <div className="fixed inset-x-0 bottom-0 z-50 max-h-[80vh] rounded-t-2xl bg-white shadow-2xl lg:hidden animate-[slideUp_0.25s_ease-out]">
-              {/* drag handle + header */}
-              <div className="flex items-center justify-between border-b px-4 pt-3 pb-2">
-                <div className="flex flex-col">
-                  <span className="mx-auto mb-2 h-1 w-10 rounded-full bg-slate-200" />
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                    Filters
-                  </p>
-                  <p className="text-[11px] text-slate-400">
-                    Refine results for your search
-                  </p>
-                </div>
+            {/* Compact filter sheet - takes only partial height */}
+            <div className="fixed inset-x-0 bottom-0 z-50 max-h-[70vh] rounded-t-3xl bg-white/95 backdrop-blur-lg shadow-2xl lg:hidden animate-[slideUp_0.25s_ease-out]">
+              {/* Drag handle + header */}
+              <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-lg border-b border-slate-200/80 px-4 pt-3 pb-3 rounded-t-3xl">
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col flex-1">
+                    <span className="mx-auto mb-2 h-1 w-12 rounded-full bg-slate-300" />
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-700">
+                          Filters
+                        </p>
+                        <p className="text-[10px] text-slate-500 mt-0.5">
+                          {filtered.length} properties match
+                        </p>
+                      </div>
 
-                <button
-                  onClick={() => setIsFilterOpen(false)}
-                  className="text-[11px] font-medium text-slate-500"
-                >
-                  Close
-                </button>
+                      <button
+                        onClick={() => setIsFilterOpen(false)}
+                        className="text-xs font-semibold text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-full bg-slate-100"
+                      >
+                        Done
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {/* content */}
-              <div className="overflow-y-auto px-4 py-3 space-y-3 text-sm">
+              {/* Scrollable filter content */}
+              <div className="overflow-y-auto px-4 py-4 space-y-3.5 max-h-[calc(70vh-140px)]">
                 <FilterSelect
                   label="Project"
                   value={filters.project}
@@ -765,8 +844,8 @@ const PropertyListingPage = () => {
                 />
               </div>
 
-              {/* footer actions */}
-              <div className="border-t px-4 py-3 flex items-center justify-between gap-3">
+              {/* Sticky footer actions */}
+              <div className="sticky bottom-0 bg-white/95 backdrop-blur-lg border-t border-slate-200/80 px-4 py-3 flex items-center gap-3">
                 <button
                   onClick={() => {
                     setFilters({
@@ -778,17 +857,17 @@ const PropertyListingPage = () => {
                       location: "",
                       area: [0, 5000],
                       price: [0, 10000],
-                      city: filters.city, // keep city filter from banner
+                      city: filters.city,
                     });
                     setCurrentPage(1);
                   }}
-                  className="text-xs font-semibold text-red-500"
+                  className="flex-1 text-xs font-semibold text-red-600 border border-red-200 rounded-full py-2.5 bg-red-50"
                 >
                   Clear all
                 </button>
                 <button
                   onClick={() => setIsFilterOpen(false)}
-                  className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-sm"
+                  className="flex-[2] rounded-full bg-slate-900 px-4 py-2.5 text-xs font-bold text-white shadow-lg"
                 >
                   Show {filtered.length} results
                 </button>

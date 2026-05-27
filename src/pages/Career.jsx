@@ -13,10 +13,14 @@ const Career = () => {
     phone_number: "",
     email: "",
     city: "",
-    message: "",
+    description: "",
   });
 
-  const [loading, setLoading] = useState(false);
+  // ✅ NEW STATES FOR MODAL AND LOADING
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -26,13 +30,15 @@ const Career = () => {
   const validate = () => {
     // phone validation
     if (!/^[6-9]\d{9}$/.test(form.phone_number)) {
-      alert("Phone must be 10 digits and start with 6-9");
+      setErrorMessage("Phone must be 10 digits and start with 6-9");
+      setShowErrorModal(true);
       return false;
     }
 
     // email validation
     if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) {
-      alert("Invalid email format");
+      setErrorMessage("Invalid email format");
+      setShowErrorModal(true);
       return false;
     }
 
@@ -44,10 +50,12 @@ const Career = () => {
 
     if (!validate()) return;
 
+    setIsSubmitting(true); // ✅ Start loading
+
     try {
       const payload = {
-        name: form.full_name, // ✅ FIXED
-        phone: form.phone_number, // ✅ FIXED
+        name: form.full_name,
+        phone: form.phone_number,
         email: form.email,
         city: form.city,
         description: form.description,
@@ -65,48 +73,54 @@ const Career = () => {
 
       console.log("Response:", response.data);
 
-      setForm({
-        full_name: "",
-        phone_number: "",
-        email: "",
-        city: "",
-        description: "",
-      });
+      // ✅ FIX: Check HTTP status code (200/201) for success
+      if (response.status === 200 || response.status === 201 || response.data.success) {
+        // Show success modal
+        setShowSuccessModal(true);
 
-      if (response.data.success) {
-        // ✅ RESET FORM
-
-        alert("Enquiry submitted successfully ✅");
+        // Reset form
+        setForm({
+          full_name: "",
+          phone_number: "",
+          email: "",
+          city: "",
+          description: "",
+        });
       } else {
-        alert(response.data.message);
+        setErrorMessage(response.data.message || "Something went wrong");
+        setShowErrorModal(true);
       }
     } catch (error) {
       console.error("Error:", error);
       console.log("Backend Error:", error.response?.data);
 
-      alert(
-        error.response?.data?.message || "400 error - check required fields ❌",
+      setErrorMessage(
+        error.response?.data?.message ||
+          "Failed to submit enquiry. Please try again.",
       );
+      setShowErrorModal(true);
+    } finally {
+      setIsSubmitting(false); // ✅ Stop loading
     }
   };
+
   return (
     <div>
       <Navbar />
       <div className="min-h-screen bg-slate-50 text-slate-900">
         {/* HERO */}
-
         <section className="relative w-full h-[600px] flex items-center overflow-hidden">
           {/* Background Image with Overlay */}
           <div
             className="absolute inset-0 z-0"
             style={{
-              backgroundImage: `url('/assets/images/relation.jpg')`, // Replace with your specific image path
+              backgroundImage: `url('/assets/images/relation.jpg')`,
               backgroundSize: "cover",
               backgroundPosition: "center",
             }}
           >
             {/* Gradient Overlay for Text Readability */}
-            <div className="absolute inset-0  bg-gradient-to-r from-gray-900 via-gray-600 to-#f58025t"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-600 to-#f58025t"></div>
           </div>
 
           {/* Content Container */}
@@ -136,7 +150,10 @@ const Career = () => {
 
               {/* CTA and Metadata */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 pt-4">
-                <Link to='/career#join' className="bg-[#005596] hover:bg-orange-600 transition-colors text-white font-semibold py-3 px-8 rounded-lg shadow-lg">
+                <Link
+                  to="/career#join"
+                  className="bg-[#005596] hover:bg-orange-600 transition-colors text-white font-semibold py-3 px-8 rounded-lg shadow-lg"
+                >
                   Join as Advisor
                 </Link>
 
@@ -500,6 +517,7 @@ const Career = () => {
                     name="full_name"
                     value={form.full_name}
                     onChange={handleChange}
+                    required
                   />
                 </div>
                 <div>
@@ -513,6 +531,7 @@ const Career = () => {
                     name="phone_number"
                     value={form.phone_number}
                     onChange={handleChange}
+                    required
                   />
                 </div>
               </div>
@@ -542,6 +561,7 @@ const Career = () => {
                     name="city"
                     value={form.city}
                     onChange={handleChange}
+                    required
                   />
                 </div>
               </div>
@@ -557,17 +577,49 @@ const Career = () => {
                   name="description"
                   value={form.description}
                   onChange={handleChange}
+                  required
                 />
               </div>
 
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2">
+                {/* ✅ UPDATED SUBMIT BUTTON WITH LOADER */}
                 <button
                   type="submit"
-                  disabled={loading}
-                  className="inline-flex items-center justify-center rounded-md px-5 py-2.5 text-sm font-medium text-white shadow-sm"
-                  style={{ background: primaryOrange }}
+                  disabled={isSubmitting}
+                  className={`inline-flex items-center justify-center rounded-md px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-all ${
+                    isSubmitting
+                      ? "bg-orange-400 cursor-not-allowed"
+                      : "bg-[#f58025] hover:bg-[#d66716]"
+                  }`}
                 >
-                  {loading ? "Submitting..." : "Submit Enquiry"}
+                  {isSubmitting ? (
+                    <>
+                      {/* Spinner */}
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Submitting...
+                    </>
+                  ) : (
+                    "Submit Enquiry"
+                  )}
                 </button>
                 <p className="text-[11px] text-slate-500">
                   By submitting, you agree to be contacted by the Prarambh Infra
@@ -577,6 +629,161 @@ const Career = () => {
             </form>
           </div>
         </section>
+
+        {/* ✅ SUCCESS MODAL */}
+        {showSuccessModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-slideUp">
+              {/* Header with gradient */}
+              <div className="bg-gradient-to-r from-green-500 to-emerald-600 px-6 py-8 text-center">
+                {/* Success Icon */}
+                <div className="mx-auto w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 animate-bounce">
+                  <svg
+                    className="w-8 h-8 text-green-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={3}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-2">
+                  Application Submitted!
+                </h3>
+                <p className="text-sm text-green-50">
+                  We've received your advisor application
+                </p>
+              </div>
+
+              {/* Body */}
+              <div className="px-6 py-6 space-y-4">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <p className="text-sm text-slate-700 leading-relaxed">
+                    Thank you{" "}
+                    <strong className="text-green-700">
+                      {form.full_name || "for your interest"}
+                    </strong>
+                    ! Our HR team will review your application and contact you
+                    within <strong>2-3 business days</strong> on{" "}
+                    <strong className="text-green-700">
+                      {form.phone_number}
+                    </strong>
+                    .
+                  </p>
+                </div>
+
+                <div className="flex items-start gap-3 text-xs text-slate-600 bg-slate-50 p-3 rounded-lg">
+                  <svg
+                    className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <p>
+                    You'll receive a confirmation call to schedule an interview.
+                    Keep your documents ready for verification.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setShowSuccessModal(false)}
+                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold py-3 rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg hover:shadow-xl"
+                >
+                  Got it, thanks!
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ✅ ERROR MODAL */}
+        {showErrorModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-shake">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-red-500 to-rose-600 px-6 py-8 text-center">
+                {/* Error Icon */}
+                <div className="mx-auto w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4">
+                  <svg
+                    className="w-8 h-8 text-red-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={3}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-2">
+                  Oops! Something went wrong
+                </h3>
+                <p className="text-sm text-red-50">
+                  We couldn't submit your application
+                </p>
+              </div>
+
+              {/* Body */}
+              <div className="px-6 py-6 space-y-4">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-sm text-slate-700">{errorMessage}</p>
+                </div>
+
+                <div className="flex items-start gap-3 text-xs text-slate-600 bg-slate-50 p-3 rounded-lg">
+                  <svg
+                    className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <p>
+                    Please check your details and try again or contact us
+                    directly at <strong className="text-blue-600">6232908887</strong>
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowErrorModal(false)}
+                    className="flex-1 bg-slate-100 text-slate-700 font-semibold py-3 rounded-lg hover:bg-slate-200 transition-all"
+                  >
+                    Close
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowErrorModal(false);
+                    }}
+                    className="flex-1 bg-gradient-to-r from-red-500 to-rose-600 text-white font-semibold py-3 rounded-lg hover:from-red-600 hover:to-rose-700 transition-all shadow-lg"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <Footer />

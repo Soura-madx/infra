@@ -4,25 +4,6 @@ import ProjectGrid from "../component/projectGrid";
 import Footer from "../component/footer";
 import Navbar from "../component/Navbar";
 
-const slides = [
-  {
-    title: "Curated Premium Projects",
-    subtitle:
-      "Handpicked townships, villas and plotted developments in Indore & Ujjain.",
-    image: "/assets/images/project1.jpg",
-  },
-  {
-    title: "Ready-to-Move Residences",
-    subtitle:
-      "Move-in ready homes with verified titles and clear documentation.",
-    image: "/assets/images/project2.jpg",
-  },
-  {
-    title: "Investment-Grade Plots",
-    subtitle: "Strategic locations along Indore–Ujjain growth corridors.",
-    image: "/assets/images/project1.jpg",
-  },
-];
 
 export default function LuxuryProjectsBanner() {
   const [active, setActive] = useState(0);
@@ -215,6 +196,8 @@ export default function LuxuryProjectsBanner() {
               <option value="">Type</option>
               <option value="Residential">Residential</option>
               <option value="Commercial">Commercial</option>
+              <option value="Industrial">Industrial</option>
+              <option value="Agriculture">Agriculture</option>
             </select>
 
             <select

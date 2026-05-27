@@ -135,7 +135,7 @@ export default function Navbar() {
           <div className="border-t border-slate-100 bg-white/98 backdrop-blur-xl px-4 pb-4 pt-3 text-sm font-medium shadow-sm space-y-1">
             <NavLink
               to="/"
-              className="block w-full py-2 text-left text-slate-800 pl-3 md:pl-0"
+              className="block w-full py-2 text-left text-slate-800 pl-3 lg:pl-0"
               style={{ color: NAV_BG }}
               onClick={() => setMobileOpen(false)}
             >
@@ -164,7 +164,7 @@ export default function Navbar() {
             />
             <NavLink
               to="/property"
-              className="block w-full py-2 text-left text-slate-800 pl-3 md:pl-0"
+              className="block w-full py-2 text-left text-slate-800 pl-3 lg:pl-0"
               style={{ color: NAV_BG }}
               onClick={() => setMobileOpen(false)}
             >
@@ -172,7 +172,7 @@ export default function Navbar() {
             </NavLink>
             <NavLink
               to="/blog"
-              className="block w-full py-2 text-left text-slate-800 pl-3 md:pl-0"
+              className="block w-full py-2 text-left text-slate-800 pl-3 lg:pl-0"
               style={{ color: NAV_BG }}
               onClick={() => setMobileOpen(false)}
             >
@@ -180,7 +180,7 @@ export default function Navbar() {
             </NavLink>
             <NavLink
               to="/career"
-              className="block w-full py-2 text-left text-slate-800 pl-3 md:pl-0"
+              className="block w-full py-2 text-left text-slate-800 pl-3 lg:pl-0"
               style={{ color: NAV_BG }}
               onClick={() => setMobileOpen(false)}
             >
@@ -188,7 +188,7 @@ export default function Navbar() {
             </NavLink>
             <NavLink
               to="/contact-us"
-              className="block w-full py-2 text-left text-slate-800 pl-3 md:pl-0"
+              className="block w-full py-2 text-left text-slate-800 pl-3 lg:pl-0"
               style={{ color: NAV_BG }}
               onClick={() => setMobileOpen(false)}
             >

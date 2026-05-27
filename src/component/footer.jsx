@@ -11,6 +11,8 @@ import {
   Clock,
 } from 'lucide-react';
 
+import { Link } from 'react-router-dom';
+
 const PRIMARY = '#005596';
 const ACCENT = '#f58025';
 
@@ -63,31 +65,31 @@ const Footer = () => {
 
           {/* Column 2: Quick Links */}
           <div>
-            <h3 className="text-sm font-semibold tracking-wide uppercase text-blue-100 mb-4">
+            <h3 className="text-sm font-semibold tracking-wide uppercase text-[#f58025] mb-4">
               Quick Links
             </h3>
             <ul className="space-y-2 text-sm text-blue-100">
               <li>
-                <a href="/about" className="hover:text-[#f58025] transition-colors">
+                <Link to={"/about-us"} className="hover:text-[#f58025] transition-colors">
                   About Us
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/property" className="hover:text-[#f58025] transition-colors">
+                <Link to={"/property"} className="hover:text-[#f58025] transition-colors">
                   All Properties
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/blog" className="hover:text-[#f58025] transition-colors">
+                <Link to={"/blog"} className="hover:text-[#f58025] transition-colors">
                   Real Estate Blog
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/contact" className="hover:text-[#f58025] transition-colors">
+                <Link to={"/contact-us"} className="hover:text-[#f58025] transition-colors">
                   Contact Us
-                </a>
+                </Link>
               </li>
-              <li>
+              {/* <li>
                 <a
                   href="#"
                   className="flex items-center gap-2 text-[#f58025] font-medium mt-2"
@@ -95,7 +97,7 @@ const Footer = () => {
                   <Star size={16} fill={ACCENT} />
                   Rate us on Google
                 </a>
-              </li>
+              </li> */}
             </ul>
           </div>
 
@@ -135,7 +137,7 @@ const Footer = () => {
 
           {/* Column 4: Contact Details */}
           <div>
-            <h3 className="text-sm font-semibold tracking-wide uppercase text-blue-100 mb-4">
+            <h3 className="text-sm font-semibold tracking-wide uppercase text-[#f58025] mb-4">
               Get In Touch
             </h3>
             <div className="space-y-3 text-sm text-blue-100">
@@ -148,8 +150,8 @@ const Footer = () => {
               </div>
               <div className="flex items-center gap-3">
                 <Phone size={16} className="text-[#f58025] shrink-0" />
-                <a href="tel:+919876511122" className="hover:text-[#f58025]">
-                  +91 98765 11122
+                <a href="tel:+916232908887" className="hover:text-[#f58025]">
+                  +91 6232908887
                 </a>
               </div>
               <div className="flex items-center gap-3">
@@ -218,12 +220,12 @@ const Footer = () => {
             © {new Date().getFullYear()} Prarambh Infra. All rights reserved.
           </p>
           <div className="flex flex-wrap items-center gap-4">
-            <a href="/privacypolicy" className="hover:text-white">
+            <Link to={"/privacypolicy"} className="hover:text-white">
               Privacy Policy
-            </a>
-            <a href="/termcondition" className="hover:text-white">
+            </Link>
+            <Link to={"/termcondition"} className="hover:text-white">
               Term and Condition
-            </a>
+            </Link>
             <span className="inline-flex items-center gap-1 text-[#f58025]">
               <span className="h-1 w-1 rounded-full bg-[#f58025]" />
               RERA No: [ A-UJN-25-2120 ]

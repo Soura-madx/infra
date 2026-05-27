@@ -207,13 +207,7 @@ const ProjectList = () => {
       )}
 
       <div className="bg-white p-3 rounded-[8px] border border-gray-100 flex flex-wrap items-center gap-3 shadow-sm">
-        <FilterSelect
-          label="Possession"
-          name="possession"
-          value={filters.possession}
-          options={["Ready to Move", "Under Construction"]}
-          onChange={handleFilterChange}
-        />
+        
         <FilterSelect
           label="Status"
           name="status"
@@ -225,7 +219,7 @@ const ProjectList = () => {
           label="Type"
           name="type"
           value={filters.type}
-          options={["Commercial", "Residential"]}
+          options={["Commercial", "Residential", "Industrial", "Agriculture"]}
           onChange={handleFilterChange}
         />
         <FilterSelect

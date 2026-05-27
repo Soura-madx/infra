@@ -40,7 +40,7 @@ const AboutStatsStrip = () => {
               />
               <AnimatedCounter
                 from={0}
-                to={470}
+                to={600}
                 duration={1800}
                 suffix="+"
                 label="Advisor"

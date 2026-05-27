@@ -12,9 +12,14 @@ export default function ContactUs() {
     phone: "",
     email: "",
     message: "",
-
     iWant: "",
   });
+
+  // ✅ NEW STATES FOR MODAL AND LOADING
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -22,25 +27,32 @@ export default function ContactUs() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
+  setIsSubmitting(true);
 
-    try {
-      const formData = new FormData();
+  try {
+    const formData = new FormData();
 
-      // ⚠️ VERY IMPORTANT: match backend field names
-      formData.append("full_name", form.name);
-      formData.append("phone_number", form.phone); // 🔥 change phone → mobile
-      formData.append("email", form.email);
-      formData.append("message", form.message);
-      formData.append("i_want_to", form.iWant); // 🔥 change iWant → requirement
+    formData.append("full_name", form.name);
+    formData.append("phone_number", form.phone);
+    formData.append("email", form.email);
+    formData.append("message", form.message);
+    formData.append("i_want_to", form.iWant);
 
-      const response = await axios.post(
-        "https://workiees.com/api/contacts/add",
-        formData,
-      );
+    const response = await axios.post(
+      "https://workiees.com/api/contacts/add",
+      formData,
+    );
 
-      console.log("API Response:", response.data);
+    console.log("API Response:", response.data);
 
+    // ✅ FIX: Check if response status is 200 or 201 (success)
+    // Most APIs return 200/201 for success, not necessarily success: true
+    if (response.status === 200 || response.status === 201 || response.data.success) {
+      // Show success modal
+      setShowSuccessModal(true);
+
+      // Reset form
       setForm({
         name: "",
         phone: "",
@@ -48,20 +60,25 @@ export default function ContactUs() {
         message: "",
         iWant: "",
       });
-      if (response.data.success) {
-        alert("Enquiry submitted successfully ✅");
-      } else {
-        alert(response.data.message || "Something went wrong");
-      }
-    } catch (error) {
-      console.error("FULL ERROR:", error);
-      console.log("BACKEND RESPONSE:", error.response?.data);
-
-      alert(
-        error.response?.data?.message || "400 error — check field names ❌",
-      );
+    } else {
+      // Show error modal
+      setErrorMessage(response.data.message || "Something went wrong");
+      setShowErrorModal(true);
     }
-  };
+  } catch (error) {
+    console.error("FULL ERROR:", error);
+    console.log("BACKEND RESPONSE:", error.response?.data);
+
+    // ✅ Only show error if there's actually an error (4xx, 5xx status codes)
+    setErrorMessage(
+      error.response?.data?.message ||
+        "Failed to submit enquiry. Please try again.",
+    );
+    setShowErrorModal(true);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <div>
@@ -71,7 +88,7 @@ export default function ContactUs() {
         <div className="max-w-7xl mx-auto px-6 lg:px-6">
           {/* Heading */}
           <header className="mb-8 max-w-3xl">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[${ACCENT}] mb-1">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#f58025] mb-1">
               Contact us
             </p>
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
@@ -138,24 +155,6 @@ export default function ContactUs() {
                 </div>
 
                 <div className="grid gap-3 grid-cols-1">
-                  {/* <div>
-                  <label className="block text-[11px] font-medium text-slate-600 mb-1">
-                    Are you a*
-                  </label>
-                  <select
-                    name="youAre"
-                    value={form.youAre}
-                    onChange={handleChange}
-                    className="w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#034A91]/20"
-                    required
-                  >
-                    <option value="">Select</option>
-                    <option value="Developer">Developer</option>
-                    <option value="Agent">Agent</option>
-                    <option value="Buyer">Buyer / Investor</option>
-                  </select>
-                </div> */}
-
                   <div>
                     <label className="block text-[11px] font-medium text-slate-600 mb-1">
                       I want to*
@@ -165,6 +164,7 @@ export default function ContactUs() {
                       value={form.iWant}
                       onChange={handleChange}
                       required
+                      className="w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#034A91]/20"
                     >
                       <option value="">Select</option>
                       <option value="Buy a property">Buy a property</option>
@@ -188,11 +188,44 @@ export default function ContactUs() {
                   />
                 </div>
 
+                {/* ✅ UPDATED SUBMIT BUTTON WITH LOADER */}
                 <button
                   type="submit"
-                  className="mt-2 inline-flex w-full items-center justify-center rounded-md bg-[#f58025] px-4 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-lg shadow-orange-900/20 transition-all hover:bg-[#d66716] hover:-translate-y-0.5"
+                  disabled={isSubmitting}
+                  className={`mt-2 inline-flex w-full items-center justify-center rounded-md px-4 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-lg transition-all ${
+                    isSubmitting
+                      ? "bg-orange-400 cursor-not-allowed"
+                      : "bg-[#f58025] shadow-orange-900/20 hover:bg-[#d66716] hover:-translate-y-0.5"
+                  }`}
                 >
-                  Submit enquiry
+                  {isSubmitting ? (
+                    <>
+                      {/* Spinner */}
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Submitting...
+                    </>
+                  ) : (
+                    "Submit enquiry"
+                  )}
                 </button>
 
                 <p className="mt-2 text-[10px] text-slate-400">
@@ -212,7 +245,7 @@ export default function ContactUs() {
                 <dl className="space-y-2 text-xs sm:text-sm text-slate-700">
                   <div className="flex gap-2">
                     <dt className="w-28 text-slate-500">Contact person</dt>
-                    <dd className="font-semibold">Nidhi Mam</dd>
+                    <dd className="font-semibold">Amit Jadhav</dd>
                   </div>
                   <div className="flex gap-2">
                     <dt className="w-28 text-slate-500">Call us</dt>
@@ -221,7 +254,7 @@ export default function ContactUs() {
                         href="tel:+919876511122"
                         className="font-semibold text-[#034A91] hover:underline"
                       >
-                        98765 11122
+                        6232908887
                       </a>
                     </dd>
                   </div>
@@ -262,13 +295,163 @@ export default function ContactUs() {
                     referrerPolicy="no-referrer-when-downgrade"
                     style={{ border: 0 }}
                   ></iframe>
-
-                 
                 </div>
               </div>
             </div>
           </div>
         </div>
+
+        {/* ✅ SUCCESS MODAL */}
+        {showSuccessModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-slideUp">
+              {/* Header with gradient */}
+              <div className="bg-gradient-to-r from-green-500 to-emerald-600 px-6 py-8 text-center">
+                {/* Success Icon */}
+                <div className="mx-auto w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 animate-bounce">
+                  <svg
+                    className="w-8 h-8 text-green-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={3}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-2">
+                  Enquiry Submitted!
+                </h3>
+                <p className="text-sm text-green-50">
+                  We've received your request successfully
+                </p>
+              </div>
+
+              {/* Body */}
+              <div className="px-6 py-6 space-y-4">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <p className="text-sm text-slate-700 leading-relaxed">
+                    Thank you{" "}
+                    <strong className="text-green-700">
+                      {form.name || "for reaching out"}
+                    </strong>
+                    ! Our team will contact you within <strong>24 hours</strong>{" "}
+                    on{" "}
+                    <strong className="text-green-700">{form.phone}</strong>.
+                  </p>
+                </div>
+
+                <div className="flex items-start gap-3 text-xs text-slate-600 bg-slate-50 p-3 rounded-lg">
+                  <svg
+                    className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <p>
+                    You'll receive a confirmation message on WhatsApp shortly.
+                    Check your spam folder if you don't see our email.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setShowSuccessModal(false)}
+                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold py-3 rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg hover:shadow-xl"
+                >
+                  Got it, thanks!
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ✅ ERROR MODAL */}
+        {showErrorModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-shake">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-red-500 to-rose-600 px-6 py-8 text-center">
+                {/* Error Icon */}
+                <div className="mx-auto w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4">
+                  <svg
+                    className="w-8 h-8 text-red-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={3}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-2">
+                  Oops! Something went wrong
+                </h3>
+                <p className="text-sm text-red-50">
+                  We couldn't submit your enquiry
+                </p>
+              </div>
+
+              {/* Body */}
+              <div className="px-6 py-6 space-y-4">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-sm text-slate-700">{errorMessage}</p>
+                </div>
+
+                <div className="flex items-start gap-3 text-xs text-slate-600 bg-slate-50 p-3 rounded-lg">
+                  <svg
+                    className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <p>
+                    Please try again or contact us directly at{" "}
+                    <strong className="text-blue-600">6232908887</strong>
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowErrorModal(false)}
+                    className="flex-1 bg-slate-100 text-slate-700 font-semibold py-3 rounded-lg hover:bg-slate-200 transition-all"
+                  >
+                    Close
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowErrorModal(false);
+                    }}
+                    className="flex-1 bg-gradient-to-r from-red-500 to-rose-600 text-white font-semibold py-3 rounded-lg hover:from-red-600 hover:to-rose-700 transition-all shadow-lg"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
       <Footer />
     </div>
